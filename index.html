@@ -1,0 +1,2298 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Carnet Spirituel</title>
+
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Carnet Spirituel">
+<meta name="theme-color" content="#1E2749">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+<style>
+  :root{
+    --nuit:#1E2749; --nuit-clair:#37406B; --aube:#C9922F; --aube-clair:#E8B968;
+    --grace:#6B8F71; --intercession:#6B4A6E; --alerte:#B4523C;
+    --papier:#F3F4F1; --carte:#FFFFFF; --ligne:#E1DFD6; --encre:#24262B; --encre-doux:#6b6d64;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0; padding:0; background:var(--papier); color:var(--encre);
+    font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; -webkit-tap-highlight-color:transparent;}
+  h1,h2,h3{margin:0;}
+  .serif{font-family:Georgia,'Iowan Old Style',serif;}
+  .container{max-width:720px; margin:0 auto; padding:0 16px;}
+  button{font-family:inherit; cursor:pointer;}
+
+  header{position:sticky; top:0; z-index:20; background:var(--nuit);}
+  .header-inner{padding:14px 16px 10px;}
+  .brand{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px;}
+  .brand-left{display:flex; align-items:center; gap:8px;}
+  .brand-emoji{font-size:20px;}
+  .brand-emblem{width:30px; height:30px; border-radius:50%; flex:0 0 auto;
+    background:radial-gradient(circle at 35% 30%, #BFE1FA, #5AA7E0 60%, #1F5C97 100%);
+    display:flex; align-items:center; justify-content:center; font-size:15px; box-shadow:0 0 14px rgba(90,167,224,0.5);}
+  .brand-emblem svg, .onboard-emblem svg{display:block;}
+  .brand-title{color:#fff; font-size:14px; font-weight:600; line-height:1.2;}
+  .brand-sub{color:#B9BEDB; font-size:11px; line-height:1.2;}
+  .streak-pill{background:rgba(201,146,47,0.2); color:var(--aube-clair); font-size:11px; font-weight:700;
+    padding:4px 10px; border-radius:999px; white-space:nowrap;}
+  .tabs{display:flex; gap:4px; overflow-x:auto; padding-bottom:2px;}
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab-btn{display:flex; align-items:center; gap:6px; padding:7px 12px; border-radius:999px; border:none;
+    background:transparent; color:#C9CBE8; font-size:12px; font-weight:600; white-space:nowrap;}
+  .tab-btn.active{background:var(--aube); color:var(--nuit);}
+
+  main{padding:20px 16px 100px;}
+
+  .card{background:var(--carte); border:1px solid var(--ligne); border-radius:16px; padding:20px; margin-bottom:16px;}
+  .card-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:6px;}
+  .card-title{display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; text-transform:uppercase;
+    letter-spacing:0.06em; color:var(--nuit);}
+  .card-title .emoji{font-size:16px;}
+
+  label.field-label{display:block; font-size:12px; font-weight:600; color:var(--encre-doux); margin-bottom:6px;}
+  input, select, textarea{border:1px solid var(--ligne); background:#fff; border-radius:10px; padding:9px 10px;
+    font-size:16px; color:var(--encre); font-family:inherit; width:100%;}
+  input[type=number]{width:74px;}
+  input[type=time]{width:auto;}
+  input[type=date]{width:auto;}
+  input:focus, select:focus, textarea:focus{outline:2px solid var(--aube); outline-offset:1px;}
+  textarea{resize:none;}
+  .row{display:flex; align-items:flex-end; gap:10px; flex-wrap:wrap; margin-bottom:12px;}
+  .row:last-child{margin-bottom:0;}
+  .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media(max-width:420px){.grid-2{grid-template-columns:1fr;}}
+  .duree-wrap{display:flex; align-items:center; gap:6px;}
+  .duree-unit{font-size:12px; color:var(--encre-doux);}
+  .sep{border-top:1px dashed var(--ligne); margin:14px 0 12px; padding-top:12px;}
+  .sub-label{display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:var(--encre-doux); margin-bottom:8px;}
+  .datetime-pair{display:flex; gap:6px; flex-wrap:wrap;}
+
+  .btn-add{display:inline-flex; align-items:center; gap:6px; border:1px solid var(--aube); color:var(--aube);
+    background:transparent; border-radius:999px; padding:7px 14px; font-size:12px; font-weight:700;}
+  .icon-btn{background:none; border:none; color:var(--alerte); padding:4px; font-size:16px; line-height:1;}
+  .badge{font-size:11px; font-weight:600; padding:4px 10px; border-radius:999px; background:var(--papier); color:var(--nuit);}
+
+  .toggle{position:relative; width:44px; height:26px; border-radius:999px; border:none; background:var(--ligne); flex-shrink:0;}
+  .toggle.on{background:var(--alerte);}
+  .toggle-knob{position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%; background:#fff; transition:transform .15s;}
+  .toggle.on .toggle-knob{transform:translateX(18px);}
+  .toggle.on.grace{background:var(--grace);}
+  .toggle.on.info{background:var(--intercession);}
+
+  .verset-card{border-radius:16px; padding:16px 18px; margin-bottom:14px; background:#fff; border:1px solid var(--ligne); border-left:4px solid var(--aube);}
+  .verset-txt{font-style:italic; font-size:14px; line-height:1.5; color:var(--encre); margin-bottom:6px;}
+  .verset-ref{font-size:11px; color:var(--encre-doux); font-weight:600;}
+
+  .resume{border-radius:16px; padding:20px; margin-bottom:16px; color:#fff;
+    background:linear-gradient(135deg, var(--nuit), var(--nuit-clair));}
+  .resume-label{font-size:11px; text-transform:uppercase; letter-spacing:0.12em; opacity:0.7; margin-bottom:4px;}
+  .resume-value{font-size:28px;}
+  .rhythm-bar{position:relative; height:22px; border-radius:999px; background:rgba(255,255,255,0.14); overflow:hidden; margin-top:16px;}
+  .rhythm-seg{position:absolute; top:0; height:100%; opacity:0.9;}
+  .rhythm-scale{display:flex; justify-content:space-between; font-size:10px; opacity:0.7; margin-top:4px;}
+  .rhythm-legend{display:flex; gap:16px; margin-top:8px; font-size:11px; opacity:0.85;}
+  .rhythm-legend span{display:flex; align-items:center; gap:5px;}
+  .dot{width:9px; height:9px; border-radius:50%; display:inline-block;}
+  .prog-row{margin-top:12px;}
+  .prog-label{display:flex; justify-content:space-between; font-size:11px; opacity:0.88; margin-bottom:4px;}
+  .prog-track{height:6px; border-radius:999px; background:rgba(255,255,255,0.18); overflow:hidden;}
+  .prog-fill{height:100%; border-radius:999px; background:var(--aube-clair);}
+
+  .date-nav{display:flex; align-items:center; justify-content:space-between; background:var(--nuit); border-radius:16px;
+    padding:10px 14px; margin-bottom:4px;}
+  .date-nav button{background:none; border:none; color:#fff; font-size:18px; padding:4px 8px;}
+  .date-nav input[type=date]{background:transparent; border:none; color:#fff; font-size:14px; font-weight:600; text-align:center;}
+  .date-caption{text-align:center; font-size:12px; color:var(--encre-doux); margin:6px 0 2px;}
+  .autosave-status{text-align:center; font-size:11px; color:var(--encre-doux); min-height:14px; margin:0 0 14px;}
+
+  .fixed-save{position:fixed; left:0; right:0; bottom:0; padding:12px 16px; background:rgba(243,244,241,0.94);
+    backdrop-filter:blur(6px); border-top:1px solid var(--ligne); display:flex; justify-content:center; z-index:15;}
+  .btn-primary{max-width:640px; width:100%; background:var(--aube); color:#fff; border:none; border-radius:14px;
+    padding:13px; font-weight:700; font-size:14px; display:flex; align-items:center; justify-content:center; gap:8px;}
+  .btn-primary.saved{background:var(--grace);}
+  .btn-primary:disabled{opacity:0.6;}
+  .btn-secondary{background:var(--papier); color:var(--nuit); border:1px solid var(--ligne); border-radius:12px;
+    padding:10px 14px; font-weight:600; font-size:13px;}
+  .btn-danger{background:#fff; color:var(--alerte); border:1px solid var(--alerte); border-radius:12px; padding:10px 14px; font-weight:600; font-size:13px;}
+
+  .hist-filters{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;}
+  .hist-filters input[type=text]{flex:1; min-width:140px;}
+  .hist-filters select{width:auto;}
+  .hist-check{display:flex; align-items:center; gap:6px; font-size:12px; color:var(--encre-doux); background:var(--carte); border:1px solid var(--ligne); border-radius:10px; padding:8px 10px; white-space:nowrap;}
+  .hist-check input{width:auto;}
+  .hist-item{display:flex; align-items:center; justify-content:space-between; background:var(--carte);
+    border:1px solid var(--ligne); border-radius:12px; padding:12px 14px; margin-bottom:8px; width:100%; text-align:left;}
+  .hist-date{font-size:14px; font-weight:600; color:var(--nuit);}
+  .hist-meta{display:flex; gap:10px; font-size:11px; color:var(--encre-doux); margin-top:3px; flex-wrap:wrap;}
+  .empty-state{text-align:center; padding:60px 20px; color:var(--encre-doux);}
+  .empty-state .emoji{font-size:26px; margin-bottom:10px;}
+
+  .bilan-toolbar{display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:18px;}
+  .bilan-toolbar-title{display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; text-transform:uppercase;
+    letter-spacing:0.06em; color:var(--nuit);}
+  .bilan-header{margin-bottom:22px; padding-bottom:18px; border-bottom:1px solid var(--ligne);}
+  .bilan-kicker{font-size:11px; text-transform:uppercase; letter-spacing:0.12em; color:var(--aube); margin-bottom:4px;}
+  .bilan-name{font-size:24px; color:var(--nuit);}
+  .bilan-date{font-size:13px; color:var(--encre-doux); margin-top:4px;}
+  .kpi-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:20px;}
+  @media(min-width:520px){.kpi-grid{grid-template-columns:repeat(3,1fr);}}
+  .kpi{background:var(--papier); border-radius:12px; padding:12px;}
+  .kpi .label{font-size:11px; color:var(--encre-doux);}
+  .kpi .value{font-size:18px; font-weight:700; color:var(--nuit); margin-top:2px;}
+  .kpi .sub{font-size:10px; color:var(--encre-doux); margin-top:2px;}
+  .section-label{font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--nuit); margin-bottom:10px;}
+  .people-tags{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:22px;}
+  .people-tag{font-size:12px; padding:6px 12px; border-radius:999px; background:rgba(107,74,110,0.08); color:var(--intercession);}
+  .reco{display:flex; gap:10px; align-items:flex-start; background:var(--papier); border-radius:12px; padding:11px 13px; margin-bottom:8px;}
+  .reco-badge{font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; padding:3px 9px; border-radius:999px; flex-shrink:0;}
+  .reco-text{font-size:13.5px; line-height:1.5; color:var(--encre);}
+  .chart-wrap{margin-bottom:22px;}
+  .chart-caption{font-size:11px; color:var(--encre-doux); margin-top:6px; text-align:center;}
+  .month-labels{display:flex; justify-content:space-between; font-size:10px; color:var(--encre-doux); margin-top:4px;}
+  .year-nav{display:flex; align-items:center; gap:10px;}
+  .year-nav button{background:var(--papier); border:1px solid var(--ligne); border-radius:8px; padding:4px 10px; font-size:14px;}
+  .heat-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:22px;}
+  .heat-cell{aspect-ratio:1; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:9px; color:var(--encre-doux);}
+  .heat-empty{background:transparent;}
+  .score-block{display:flex; align-items:center; gap:16px; background:var(--papier); border-radius:14px; padding:16px; margin-bottom:20px;}
+  .score-num{font-size:34px; font-weight:700;}
+  .score-num .unit{font-size:14px; color:var(--encre-doux); font-weight:400;}
+  .score-niveau{font-size:13px; font-weight:700;}
+  .score-detail{font-size:11px; color:var(--encre-doux); margin-top:2px;}
+  .feedback-line{font-size:11.5px; opacity:0.92;}
+  .stats-row{display:flex; gap:16px; flex-wrap:wrap; font-size:12px; color:var(--encre-doux); margin-top:8px;}
+  .stats-row b{color:var(--nuit);}
+
+  .onboard-wrap{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;}
+  .onboard-wrap.onboard-hero{
+    background:radial-gradient(circle at 50% 0%, var(--nuit-clair) 0%, var(--nuit) 55%, #11162b 100%);
+    position:relative; overflow:hidden;
+  }
+  .onboard-wrap.onboard-hero::before{
+    content:""; position:absolute; inset:0; pointer-events:none; opacity:0.85;
+    background-image:
+      radial-gradient(1.6px 1.6px at 18% 24%, rgba(255,255,255,0.55) 50%, transparent 51%),
+      radial-gradient(1.6px 1.6px at 72% 16%, rgba(255,255,255,0.4) 50%, transparent 51%),
+      radial-gradient(1.2px 1.2px at 85% 55%, rgba(255,255,255,0.5) 50%, transparent 51%),
+      radial-gradient(1.2px 1.2px at 32% 72%, rgba(255,255,255,0.35) 50%, transparent 51%),
+      radial-gradient(1.6px 1.6px at 55% 42%, rgba(255,255,255,0.3) 50%, transparent 51%),
+      radial-gradient(1.2px 1.2px at 8% 58%, rgba(255,255,255,0.4) 50%, transparent 51%),
+      radial-gradient(1.6px 1.6px at 92% 82%, rgba(255,255,255,0.3) 50%, transparent 51%),
+      radial-gradient(1.2px 1.2px at 45% 12%, rgba(255,255,255,0.35) 50%, transparent 51%),
+      radial-gradient(1.2px 1.2px at 62% 90%, rgba(255,255,255,0.25) 50%, transparent 51%);
+  }
+  .onboard-card{width:100%; max-width:420px; background:var(--carte); border:1px solid var(--ligne); border-radius:20px; padding:32px; position:relative; z-index:1;}
+  .onboard-card-transparent{background:transparent; border:none; text-align:center; box-shadow:none; padding:20px;}
+  .onboard-card-transparent .onboard-title{color:#fff;}
+  .onboard-emblem{width:104px; height:104px; border-radius:50%; margin:0 auto 20px; position:relative;
+    background:radial-gradient(circle at 35% 30%, #BFE1FA, #5AA7E0 60%, #1F5C97 100%);
+    display:flex; align-items:center; justify-content:center; font-size:46px;
+    box-shadow:0 0 0 1px rgba(255,255,255,0.08), 0 0 30px rgba(90,167,224,0.5), 0 0 60px rgba(90,167,224,0.3);
+    animation: emblemGlow 3.5s ease-in-out infinite;}
+  @keyframes emblemGlow{
+    0%,100%{ box-shadow:0 0 0 1px rgba(255,255,255,0.08), 0 0 30px rgba(90,167,224,0.5), 0 0 60px rgba(90,167,224,0.3); }
+    50%{ box-shadow:0 0 0 1px rgba(255,255,255,0.14), 0 0 44px rgba(90,167,224,0.7), 0 0 92px rgba(90,167,224,0.45); }
+  }
+  .onboard-desc-hero{color:#C9CBE8;}
+  .onboard-dots{display:flex; gap:6px; justify-content:center; margin:18px 0 4px;}
+  .onboard-dot{width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,0.25);}
+  .onboard-dot.active{background:var(--aube);}
+  .onboard-card:not(.onboard-card-transparent) .onboard-dot{background:var(--ligne);}
+  .onboard-check{display:flex; align-items:flex-start; gap:10px; font-size:13.5px; line-height:1.4; color:var(--encre); cursor:pointer; margin-top:6px;}
+  .onboard-check input{margin-top:3px; width:18px; height:18px; flex:0 0 auto;}
+  .onboard-kicker{display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:12px; text-transform:uppercase;
+    letter-spacing:0.14em; color:var(--encre-doux);}
+  .onboard-title{font-size:24px; color:var(--nuit); margin-bottom:6px;}
+  .onboard-desc{font-size:13.5px; color:var(--encre-doux); margin-bottom:22px; line-height:1.5;}
+  .field-gap{margin-bottom:12px;}
+  .hint{font-size:12px; text-align:center; color:var(--encre-doux); margin-top:10px;}
+
+  .toast-container{position:fixed; top:14px; left:50%; transform:translateX(-50%); z-index:300; display:flex; flex-direction:column; gap:8px; align-items:center; width:calc(100% - 32px); max-width:420px;}
+  .toast{background:var(--nuit); color:#fff; padding:11px 16px; border-radius:10px; font-size:13px; box-shadow:0 4px 14px rgba(0,0,0,0.18); transition:opacity .3s, transform .3s; text-align:center;}
+  .toast-error{background:var(--alerte);}
+  .toast-success{background:var(--grace);}
+  .toast-hide{opacity:0; transform:translateY(-8px);}
+
+  .modal-overlay{position:fixed; inset:0; background:rgba(30,39,73,0.45); display:flex; align-items:center; justify-content:center; z-index:250; padding:20px;}
+  .modal-card{background:#fff; border-radius:16px; padding:22px; max-width:360px; width:100%;}
+  .modal-text{font-size:14px; color:var(--encre); margin-bottom:18px; line-height:1.5;}
+  .modal-actions{display:flex; gap:10px; justify-content:flex-end;}
+  .modal-btn{padding:9px 16px; border-radius:10px; font-size:13px; font-weight:700; border:none;}
+  .modal-cancel{background:var(--papier); color:var(--encre);}
+  .modal-confirm{background:var(--alerte); color:#fff;}
+
+  @media print{
+    body *{visibility:hidden;}
+    #bilan-print-area, #bilan-print-area *{visibility:visible;}
+    #bilan-print-area{position:absolute; left:0; top:0; width:100%; padding:28px 30px; margin:0; border:none; background:#fff;}
+    .no-print, .print-hide{display:none !important;}
+    .bilan-header{border-bottom:2px solid var(--aube); padding-bottom:14px; margin-bottom:20px;}
+    .bilan-kicker{letter-spacing:1.5px;}
+    .bilan-name{font-size:26px;}
+    .score-block{break-inside:avoid; border:1px solid var(--ligne);}
+    .kpi-grid{break-inside:avoid; margin-bottom:18px;}
+    .section-label{border-top:1px solid var(--ligne); padding-top:14px; margin-top:6px; font-size:12px; letter-spacing:0.8px;}
+    .chart-wrap, .heat-grid, .people-tags{break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* =========================================================
+   CARNET SPIRITUEL — application autonome (localStorage)
+========================================================= */
+
+/* ---------- Progressive Web App : service worker & mise à jour automatique ---------- */
+(function setupPWA(){
+  if(!("serviceWorker" in navigator)) return;
+  window.addEventListener("load", function(){
+    navigator.serviceWorker.register("sw.js").then(function(reg){
+      /* Si une nouvelle version du service worker est trouvée pendant que
+         l'app est déjà ouverte, on l'active immédiatement dès qu'elle est
+         installée, puis on recharge une seule fois pour appliquer la mise
+         à jour — sans jamais toucher aux données stockées dans localStorage. */
+      reg.addEventListener("updatefound", function(){
+        var newWorker = reg.installing;
+        if(!newWorker) return;
+        newWorker.addEventListener("statechange", function(){
+          if(newWorker.state === "installed" && navigator.serviceWorker.controller){
+            newWorker.postMessage("SKIP_WAITING");
+          }
+        });
+      });
+    }).catch(function(err){ console.error("Échec de l'enregistrement du service worker :", err); });
+
+    var refreshing = false;
+    navigator.serviceWorker.addEventListener("controllerchange", function(){
+      if(refreshing) return;
+      refreshing = true;
+      window.location.reload();
+    });
+  });
+})();
+
+/* ---------- Constantes & utilitaires ---------- */
+var STORAGE_PREFIX = "cs_entry_";
+var PROFILE_KEY = "cs_profil";
+var APP_VERSION = "1.1.0";
+var DATA_VERSION = "1.1.0";
+var MOIS_FR = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+var MOIS_ABBR = ["Jan","Fév","Mar","Avr","Mai","Juin","Juil","Août","Sep","Oct","Nov","Déc"];
+var JOURS_FR = ["Dim","Lun","Mar","Mer","Jeu","Ven","Sam"];
+
+var VERSETS = [
+  {t:"C'est ici la journée que l'Éternel a faite : qu'elle soit pour nous un sujet d'allégresse et de joie.", r:"Psaume 118.24"},
+  {t:"L'Éternel est mon berger : je ne manquerai de rien.", r:"Psaume 23.1"},
+  {t:"Que tout ce qui respire loue l'Éternel !", r:"Psaume 150.6"},
+  {t:"Recommande ton sort à l'Éternel, et il te soutiendra.", r:"Psaume 55.23"},
+  {t:"Sonde-moi, ô Dieu, et connais mon cœur ! Éprouve-moi, et connais mes pensées !", r:"Psaume 139.23"},
+  {t:"Ne t'ai-je pas donné cet ordre : Fortifie-toi et prends courage ?", r:"Josué 1.9"},
+  {t:"L'Éternel est ma lumière et mon salut : de qui aurais-je crainte ?", r:"Psaume 27.1"},
+  {t:"Persévérez dans la prière, veillez-y avec actions de grâces.", r:"Colossiens 4.2"},
+  {t:"Ne vous inquiétez de rien ; mais en toute chose faites connaître vos besoins à Dieu.", r:"Philippiens 4.6"},
+  {t:"Je puis tout par celui qui me fortifie.", r:"Philippiens 4.13"},
+  {t:"Ta parole est une lampe à mes pieds, et une lumière sur mon sentier.", r:"Psaume 119.105"},
+  {t:"Approchez-vous de Dieu, et il s'approchera de vous.", r:"Jacques 4.8"},
+  {t:"L'Éternel combattra pour vous ; et vous, gardez le silence.", r:"Exode 14.14"},
+  {t:"Venez à moi, vous tous qui êtes fatigués et chargés, et je vous donnerai du repos.", r:"Matthieu 11.28"},
+  {t:"Que votre cœur ne se trouble point. Croyez en Dieu, et croyez en moi.", r:"Jean 14.1"},
+  {t:"Je me couche, et je m'endors en paix, car toi seul, ô Éternel, tu me donnes la sécurité.", r:"Psaume 4.9"},
+  {t:"L'Éternel te gardera de tout mal, il gardera ton âme.", r:"Psaume 121.7"},
+  {t:"Réjouissez-vous toujours. Priez sans cesse. Rendez grâces en toutes choses.", r:"1 Thessaloniciens 5.16-18"},
+  {t:"Confie-toi en l'Éternel de tout ton cœur, et ne t'appuie pas sur ta sagesse.", r:"Proverbes 3.5"},
+  {t:"Cherchez premièrement le royaume et la justice de Dieu.", r:"Matthieu 6.33"},
+  {t:"Le Seigneur n'est pas lent à exécuter sa promesse ; il use de patience.", r:"2 Pierre 3.9"},
+  {t:"C'est par grâce que vous êtes sauvés, par le moyen de la foi.", r:"Éphésiens 2.8"},
+  {t:"Heureux ceux qui ont faim et soif de la justice, car ils seront rassasiés.", r:"Matthieu 5.6"},
+  {t:"L'Éternel est près de tous ceux qui l'invoquent, de tous ceux qui l'invoquent avec sincérité.", r:"Psaume 145.18"},
+  {t:"Allez, faites de toutes les nations des disciples...", r:"Matthieu 28.19"},
+  {t:"Comment croiront-ils en celui dont ils n'ont pas entendu parler ?", r:"Romains 10.14"}
+];
+
+function pad(n){ return String(n).padStart(2,"0"); }
+function todayISO(){ var d=new Date(); return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); }
+function currentYearMonth(){ var d=new Date(); return d.getFullYear()+"-"+pad(d.getMonth()+1); }
+function nowHM(){ var d=new Date(); return pad(d.getHours())+":"+pad(d.getMinutes()); }
+function timeToMin(t){ if(!t) return null; var p=t.split(":"); return Number(p[0])*60+Number(p[1]); }
+function doveSvg(size){
+  size = size || 24;
+  return '<svg width="'+Math.round(size*0.62)+'" height="'+Math.round(size*0.62)+'" viewBox="0 0 512 512" fill="#FFFFFF" xmlns="http://www.w3.org/2000/svg">' +
+    '<path d="M496 64c13.2 0 20.7 15.1 12.8 25.6L480 128 480 304c0 79.5-64.5 144-144 144l-112 0-46.3 46.3c-10.4 10.4-26.5 12.4-39.1 4.8L41.5 440.9c-17-10.2-15-35.5 3.4-42.9L160 352C23.8 311.1 7.5 169.8 22 95.7 25.6 77.9 45.3 71.4 61.3 80.2L320 224 320 144c0-44.2 35.8-80 80-80l96 0zm-96 56a24 24 0 1 0 0 48 24 24 0 1 0 0-48zM182.5-9.6c12.4-13.7 33.3-8.9 42.5 7.1l56.4 98.3c-5.8 14.4-9.2 30.1-9.4 46.5L138.1 68c10.1-31.6 27-58.4 44.4-77.6z"/>' +
+    '</svg>';
+}
+function formatMin(min){
+  min = Math.max(0, Math.round(min||0));
+  var h=Math.floor(min/60), m=min%60;
+  if(h===0) return m+" min";
+  if(m===0) return h+" h";
+  return h+" h "+m+" min";
+}
+function formatHeureMin(min){
+  min = Math.max(0, Math.round(Number(min)||0));
+  var h=Math.floor(min/60), m=min%60;
+  return pad(h)+"h"+pad(m)+"min";
+}
+function dureeEntre(a,b){
+  var d=timeToMin(a), f=timeToMin(b);
+  if(d===null||f===null) return 0;
+  var diff=f-d; if(diff<=0) diff+=1440;
+  return diff;
+}
+function uid(){ return Math.random().toString(36).slice(2,10)+Date.now().toString(36); }
+function dateLisible(iso){
+  var p=iso.split("-").map(Number); var dt=new Date(p[0],p[1]-1,p[2]);
+  return JOURS_FR[dt.getDay()]+" "+p[2]+" "+MOIS_FR[p[1]-1]+" "+p[0];
+}
+function daysInMonth(ym){ var p=ym.split("-").map(Number); return new Date(p[0],p[1],0).getDate(); }
+function daysInYear(y){ return ((y%4===0 && y%100!==0) || y%400===0) ? 366 : 365; }
+function isFutureDate(dateStr){ return dateStr > todayISO(); }
+function weekdayAbbr(iso){ var p=iso.split("-").map(Number); var dt=new Date(p[0],p[1]-1,p[2]); return JOURS_FR[dt.getDay()]; }
+function dateAdd(dateStr, delta){
+  var p=dateStr.split("-").map(Number); var dt=new Date(p[0],p[1]-1,p[2]+delta);
+  return dt.getFullYear()+"-"+pad(dt.getMonth()+1)+"-"+pad(dt.getDate());
+}
+function dayOfYear(dateStr){
+  var p=dateStr.split("-").map(Number);
+  var start=new Date(p[0],0,1), cur=new Date(p[0],p[1]-1,p[2]);
+  return Math.floor((cur-start)/86400000);
+}
+function prevYearMonth(ym){ var p=ym.split("-").map(Number); var y=p[0], m=p[1]-1; if(m<1){m=12;y--;} return y+"-"+pad(m); }
+function esc(s){ return (s==null?"":String(s)).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;"); }
+function setDeep(obj, path, value){
+  var parts=path.split("."); var cur=obj;
+  for(var i=0;i<parts.length-1;i++){ var k=/^\d+$/.test(parts[i])?Number(parts[i]):parts[i]; cur=cur[k]; }
+  var last=parts[parts.length-1]; var lk=/^\d+$/.test(last)?Number(last):last;
+  cur[lk]=value;
+}
+function dtMinutes(dateStr, timeStr){
+  if(!dateStr||!timeStr) return null;
+  var p=dateStr.split("-").map(Number); var t=timeToMin(timeStr);
+  var d=new Date(p[0],p[1]-1,p[2]);
+  return Math.round(d.getTime()/60000)+t;
+}
+function sommeilDuree(s){
+  var a=dtMinutes(s.coucherDate,s.coucher), b=dtMinutes(s.leverDate,s.lever);
+  if(a==null||b==null) return 0;
+  var diff=b-a; return diff>0?diff:0;
+}
+async function sha256Hex(str){
+  try{
+    var enc=new TextEncoder().encode(str);
+    var buf=await crypto.subtle.digest("SHA-256", enc);
+    return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,"0");}).join("");
+  }catch(e){ return "plain:"+str; }
+}
+
+function defaultEntry(date){
+  return { date:date, priereMin:0, priereSeul:{sm:0,fd:0,au:0,fm:0}, meditationMin:0, chapitresLus:0, lectureMin:0,
+    jeune:{actif:false,type:"",duree:0,objectif:""}, livre:{titre:"",minutes:0},
+    priereAutres:[], sommeil:[], groupe:{sessions:[],totalMinutes:0}, etudeMin:0,
+    retraite:{actif:false,minutes:0,type:"",note:""},
+    evangelisation:{personnes:0,minutes:0,type:""},
+    sujetsPriere:[], notesSpirituelles:{revelation:"",conviction:"",action:""}, notes:"" };
+}
+function normalizeEntry(e){
+  if(!e) return e;
+  e.jeune = e.jeune || {actif:false,type:"",duree:0,objectif:""};
+  if(e.jeune.duree==null) e.jeune.duree = 0;
+  if(e.jeune.objectif==null) e.jeune.objectif = e.jeune.notes || "";
+  delete e.jeune.notes;
+  e.livre = e.livre || {titre:"",minutes:0};
+  e.retraite = e.retraite || {actif:false,minutes:0,type:"",note:""};
+  if(e.retraite.type==null) e.retraite.type = "";
+  if(e.retraite.note==null) e.retraite.note = "";
+  e.evangelisation = e.evangelisation || {personnes:0,minutes:0,type:""};
+  if(e.evangelisation.type==null) e.evangelisation.type = "";
+  e.notesSpirituelles = e.notesSpirituelles || {revelation:"",conviction:"",action:""};
+  e.sujetsPriere = (e.sujetsPriere||[]).map(function(s){ return {id:s.id||uid(), texte:s.texte||""}; }).slice(0,3);
+
+  /* migration : familleMin + autres[] -> priereAutres[] (structure unique, conservée pour l'historique) */
+  var pa = e.priereAutres;
+  if(!pa){
+    pa = (e.autres||[]).map(function(a){ return {id:a.id||uid(), nom:a.nom||"", minutes:a.minutes||0}; });
+    if(e.familleMin){ pa.unshift({id:uid(), nom:"Famille", minutes:e.familleMin}); }
+  }
+  e.priereAutres = pa.map(function(a){ return {id:a.id||uid(), nom:a.nom||"", minutes:a.minutes||0}; });
+  delete e.autres; delete e.familleMin;
+
+  /* Prière Seule (PS) : sous-rubriques SM (soi-même) / FD (faiseur de disciple) / AU (autres) / FM (famille).
+     On ne supprime jamais l'ancien champ priereMin (rétrocompatibilité) : il est migré une fois vers PS/SM
+     puis maintenu en miroir. PS/AU est initialisé une fois à partir de l'ancienne liste nominative priereAutres[]. */
+  e.priereSeul = e.priereSeul || {sm:0, fd:0, au:0, fm:0};
+  if(e.priereSeul.sm==null) e.priereSeul.sm = 0;
+  if(e.priereSeul.fd==null) e.priereSeul.fd = 0;
+  if(e.priereSeul.fm==null) e.priereSeul.fm = 0;
+  if(e.priereSeul.au==null){
+    e.priereSeul.au = e.priereAutres.reduce(function(s,a){ return s+(a.minutes||0); },0);
+  }
+  if(!e.priereSeul.sm && e.priereMin){ e.priereSeul.sm = e.priereMin; }
+  e.priereMin = e.priereSeul.sm;
+
+  /* migration : groupe[] -> groupe:{sessions[], totalMinutes} (auto-calculé) */
+  var groupe = e.groupe;
+  if(Array.isArray(groupe)){ groupe = {sessions:groupe}; }
+  groupe = groupe || {sessions:[]};
+  groupe.sessions = (groupe.sessions||[]).map(function(g){ return {id:g.id||uid(), debut:g.debut||"", fin:g.fin||""}; });
+  groupe.totalMinutes = groupe.sessions.reduce(function(s,g){ return s+dureeEntre(g.debut,g.fin); },0);
+  e.groupe = groupe;
+
+  e.sommeil = (e.sommeil||[]).map(function(s){
+    if(s.coucherDate && s.leverDate) return s;
+    var cDate=e.date, lDate=e.date;
+    if(s.coucher && s.lever){
+      var c=timeToMin(s.coucher), l=timeToMin(s.lever);
+      if(l<=c) lDate = dateAdd(e.date,1);
+    }
+    return {id:s.id||uid(), coucherDate:s.coucherDate||cDate, coucher:s.coucher||"", leverDate:s.leverDate||lDate, lever:s.lever||""};
+  });
+  return e;
+}
+function defaultProfileShape(){
+  return { nom:"", prenom:"", faiseurDeDisciple:"", assemblee:"", version:DATA_VERSION,
+    objectifs:{priereMin:30, priereAutresMin:15, meditationMin:10, chapitres:1, etudeMin:15, sommeilMin:420,
+      retraitesParMois:1, evangelisationPersonnes:1},
+    pinEnabled:false, pinHash:null };
+}
+function storageAvailable(){
+  try{ var k="__cs_probe__"; localStorage.setItem(k,"1"); localStorage.removeItem(k); return true; }catch(e){ return false; }
+}
+var STORAGE_OK = storageAvailable();
+
+/* ---------- Stockage local ---------- */
+function getProfil(){
+  try{
+    var r=localStorage.getItem(PROFILE_KEY); if(!r) return null;
+    var p=JSON.parse(r); var d=defaultProfileShape();
+    p.objectifs = Object.assign({}, d.objectifs, p.objectifs||{});
+    if(typeof p.pinEnabled!=="boolean") p.pinEnabled=false;
+    if(!p.version) p.version = "1.0.0";
+    if(p.faiseurDeDisciple==null) p.faiseurDeDisciple = "";
+    if(p.assemblee==null) p.assemblee = "";
+    return p;
+  }catch(e){ return null; }
+}
+function saveProfil(p){ try{ localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); return true; }catch(e){ console.error(e); return false; } }
+function getEntry(date){ try{ var r=localStorage.getItem(STORAGE_PREFIX+date); return r?normalizeEntry(JSON.parse(r)):null; }catch(e){ return null; } }
+var _entriesCache = null;
+function invalidateEntriesCache(){ _entriesCache = null; }
+function saveEntryLS(date, obj){
+  try{ localStorage.setItem(STORAGE_PREFIX+date, JSON.stringify(obj)); invalidateEntriesCache(); return true; }
+  catch(e){ console.error(e); return false; }
+}
+/* loadAllEntries : mise en cache mémoire pour éviter de reparser tout le localStorage à chaque calcul de bilan.
+   Le cache est invalidé dès qu'une entrée est sauvegardée ou importée. */
+function loadAllEntries(){
+  if(_entriesCache) return _entriesCache;
+  var out=[];
+  for(var i=0;i<localStorage.length;i++){
+    var k=localStorage.key(i);
+    if(k && k.indexOf(STORAGE_PREFIX)===0){
+      try{ var v=JSON.parse(localStorage.getItem(k)); if(v) out.push(normalizeEntry(v)); }catch(e){}
+    }
+  }
+  out.sort(function(a,b){ return b.date.localeCompare(a.date); });
+  _entriesCache = out;
+  return out;
+}
+function loadMonthEntries(ym){
+  return loadAllEntries().filter(function(e){ return e.date.indexOf(ym)===0; }).sort(function(a,b){ return a.date.localeCompare(b.date); });
+}
+function loadYearEntries(year){
+  var prefix = String(year)+"-";
+  return loadAllEntries().filter(function(e){ return e.date.indexOf(prefix)===0; }).sort(function(a,b){ return a.date.localeCompare(b.date); });
+}
+
+/* ---------- Don à Dieu (dîme, offrande, fonds & besoins de prière, saisie mensuelle) ---------- */
+var DON_PREFIX = "cs_don_";
+function defaultFondEntry(){ return {montant:0, pourcentage:0}; }
+function defaultDon(){
+  return {
+    dime: defaultFondEntry(), offrande: defaultFondEntry(),
+    fmi: defaultFondEntry(), fmn: defaultFondEntry(), fe: defaultFondEntry(),
+    fg: defaultFondEntry(), rtvc: defaultFondEntry(), jmci: defaultFondEntry(),
+    besoinsPriere: ["", "", ""]
+  };
+}
+function getDon(ym){
+  try{
+    var r=localStorage.getItem(DON_PREFIX+ym); if(!r) return defaultDon();
+    var d=JSON.parse(r); var def=defaultDon();
+    ["dime","offrande","fmi","fmn","fe","fg","rtvc","jmci"].forEach(function(k){
+      d[k] = Object.assign({}, def[k], d[k]||{});
+    });
+    d.besoinsPriere = (d.besoinsPriere||["","",""]).concat(["","",""]).slice(0,3);
+    return d;
+  }catch(e){ return defaultDon(); }
+}
+function saveDon(ym, obj){ try{ localStorage.setItem(DON_PREFIX+ym, JSON.stringify(obj)); return true; }catch(e){ console.error(e); return false; } }
+function fondInputHTML(key, label, don){
+  var f = don[key];
+  return '<div><label class="field-label">'+esc(label)+' — montant (FCFA)</label><input type="number" min="0" id="don-'+key+'-montant" value="'+(f.montant||0)+'"></div>' +
+    '<div><label class="field-label">'+esc(label)+' — pourcentage (%)</label><input type="number" min="0" max="100" id="don-'+key+'-pct" value="'+(f.pourcentage||0)+'"></div>';
+}
+function donBlockHTML(ym){
+  var don = getDon(ym);
+  var mm = Number(ym.split("-")[1]);
+  return '<div class="card no-print"><div class="card-head"><div class="card-title"><span class="emoji">💰</span>Don à Dieu — '+MOIS_FR[mm-1]+'</div></div>' +
+    '<div class="sub-label">Saisie mensuelle (une fois par mois)</div>' +
+    '<div class="grid-2" style="margin-top:10px;">' +
+      fondInputHTML("dime","Dîme", don) +
+      fondInputHTML("offrande","Offrande", don) +
+      fondInputHTML("fmi","FMI (Fonds Missionnaire International)", don) +
+      fondInputHTML("fmn","FMN (Fonds Missionnaire National)", don) +
+      fondInputHTML("fe","FE (Fonds Église)", don) +
+      fondInputHTML("fg","FG (Fonds Général)", don) +
+      fondInputHTML("rtvc","RTVC", don) +
+      fondInputHTML("jmci","JCMCI", don) +
+    '</div>' +
+    '<div class="sep">' +
+      '<div class="sub-label">Besoins de prière du mois (3 sujets)</div>' +
+      [0,1,2].map(function(i){
+        return '<div class="field-gap"><input id="don-besoin-'+i+'" value="'+esc(don.besoinsPriere[i]||"")+'" placeholder="Sujet de prière '+(i+1)+'"></div>';
+      }).join("") +
+    '</div>' +
+    '<button class="btn-add" id="don-save" data-ym="'+ym+'" style="margin-top:12px;border-color:var(--grace);color:var(--grace);">💾 Enregistrer le rapport du mois</button>' +
+  '</div>';
+}
+function donDieuSummaryHTML(ym){
+  var don = getDon(ym);
+  var total = ["dime","offrande","fmi","fmn","fe","fg","rtvc","jmci"].reduce(function(s,k){ return s+(don[k].montant||0); },0);
+  return kpiGroup("Don à Dieu (ce mois)", [
+    kpiHTML("Dîme", (don.dime.montant||0)+" FCFA", (don.dime.pourcentage||0)+" %"),
+    kpiHTML("Offrande", (don.offrande.montant||0)+" FCFA", (don.offrande.pourcentage||0)+" %"),
+    kpiHTML("FMI", (don.fmi.montant||0)+" FCFA", (don.fmi.pourcentage||0)+" %"),
+    kpiHTML("FMN", (don.fmn.montant||0)+" FCFA", (don.fmn.pourcentage||0)+" %"),
+    kpiHTML("FE", (don.fe.montant||0)+" FCFA", (don.fe.pourcentage||0)+" %"),
+    kpiHTML("FG", (don.fg.montant||0)+" FCFA", (don.fg.pourcentage||0)+" %"),
+    kpiHTML("RTVC", (don.rtvc.montant||0)+" FCFA", (don.rtvc.pourcentage||0)+" %"),
+    kpiHTML("JCMCI", (don.jmci.montant||0)+" FCFA", (don.jmci.pourcentage||0)+" %"),
+    kpiHTML("Total donné", total+" FCFA")
+  ]);
+}
+function donDieuYearSummaryHTML(year){
+  var keys = ["dime","offrande","fmi","fmn","fe","fg","rtvc","jmci"];
+  var totals = {}; keys.forEach(function(k){ totals[k]=0; });
+  for(var m=1;m<=12;m++){
+    var d = getDon(year+"-"+pad(m));
+    keys.forEach(function(k){ totals[k] += (d[k]&&d[k].montant)||0; });
+  }
+  var grandTotal = keys.reduce(function(s,k){ return s+totals[k]; }, 0);
+  return kpiGroup("Don à Dieu (année)", [
+    kpiHTML("Total dîme", totals.dime+" FCFA"),
+    kpiHTML("Total offrande", totals.offrande+" FCFA"),
+    kpiHTML("Total FMI", totals.fmi+" FCFA"),
+    kpiHTML("Total FMN", totals.fmn+" FCFA"),
+    kpiHTML("Total FE", totals.fe+" FCFA"),
+    kpiHTML("Total FG", totals.fg+" FCFA"),
+    kpiHTML("Total RTVC", totals.rtvc+" FCFA"),
+    kpiHTML("Total JCMCI", totals.jmci+" FCFA"),
+    kpiHTML("Total donné", grandTotal+" FCFA")
+  ]);
+}
+
+/* ---------- Notifications & confirmations ---------- */
+function showToast(msg, type, duration){
+  type = type||"info"; duration = duration || (type==="error"?5000:2400);
+  var c=document.getElementById("toastContainer");
+  if(!c){ c=document.createElement("div"); c.id="toastContainer"; c.className="toast-container no-print"; document.body.appendChild(c); }
+  var t=document.createElement("div");
+  t.className = "toast" + (type==="error"?" toast-error":type==="success"?" toast-success":"");
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(function(){ t.classList.add("toast-hide"); setTimeout(function(){ if(t.parentNode) t.parentNode.removeChild(t); }, 300); }, duration);
+}
+function showConfirm(message, onYes){
+  var overlay=document.createElement("div"); overlay.className="modal-overlay no-print";
+  overlay.innerHTML = '<div class="modal-card"><p class="modal-text">'+esc(message)+'</p>' +
+    '<div class="modal-actions"><button class="modal-btn modal-cancel">Annuler</button><button class="modal-btn modal-confirm">Confirmer</button></div></div>';
+  document.body.appendChild(overlay);
+  overlay.querySelector(".modal-cancel").addEventListener("click", function(){ document.body.removeChild(overlay); });
+  overlay.querySelector(".modal-confirm").addEventListener("click", function(){ document.body.removeChild(overlay); onYes(); });
+}
+
+/* ---------- État global ---------- */
+var state = {
+  profile: getProfil(),
+  locked: false,
+  tab: "saisie",
+  selectedDate: todayISO(),
+  entry: null,
+  histFilters: {q:"", jeuneOnly:false, personne:""},
+  _bilanMonth: null,
+  _bilanYear: null,
+  _autosaveTimer: null,
+  _savedFlag: false
+};
+if(state.profile && state.profile.pinEnabled) state.locked = true;
+state.entry = getEntry(state.selectedDate) || defaultEntry(state.selectedDate);
+
+/* ---------- Migration versionnée (mise à jour sans perte de données) ---------- */
+function migrateData(){
+  if(!state.profile) return;
+  if(state.profile.version===DATA_VERSION) return;
+  var entries = loadAllEntries(); /* déjà passées par normalizeEntry (fallbacks systématiques) */
+  entries.forEach(function(e){ saveEntryLS(e.date, e); }); /* on réécrit la forme normalisée pour de bon */
+  state.profile.version = DATA_VERSION;
+  saveProfil(state.profile);
+  invalidateEntriesCache();
+}
+if(STORAGE_OK && state.profile) migrateData();
+
+var app = document.getElementById("app");
+
+/* =========================================================
+   RENDU PRINCIPAL
+========================================================= */
+function storageErrorHTML(){
+  return '<div class="onboard-wrap"><div class="onboard-card">' +
+    '<div class="onboard-kicker"><span>⚠️</span><span>Stockage indisponible</span></div>' +
+    '<h1 class="onboard-title serif">Carnet Spirituel</h1>' +
+    '<p class="onboard-desc">Votre navigateur bloque le stockage local (mode navigation privée ou stockage désactivé). ' +
+    'Le Carnet Spirituel ne peut pas fonctionner sans lui, car toutes vos données restent uniquement sur votre appareil. ' +
+    'Essayez de quitter la navigation privée ou d\'autoriser les données de site pour cette page, puis rechargez.</p>' +
+    '<button class="btn-primary" id="storage-retry">Réessayer</button>' +
+  '</div></div>';
+}
+function render(){
+  if(!STORAGE_OK){
+    app.innerHTML = storageErrorHTML();
+    var rb=document.getElementById("storage-retry");
+    if(rb) rb.addEventListener("click", function(){ STORAGE_OK = storageAvailable(); if(STORAGE_OK){ state.profile=getProfil(); render(); } });
+    return;
+  }
+  if(!state.profile){ app.innerHTML=onboardingHTML(); bindOnboarding(); return; }
+  if(state.locked){ app.innerHTML=lockHTML(); bindLock(); return; }
+  app.innerHTML = shellHTML();
+  bindGlobalDelegation();
+  if(state.tab==="bilan") bindBilanToolbar();
+  if(state.tab==="annuel") bindAnnuelToolbar();
+}
+
+/* ---------- Onboarding ---------- */
+var obState = {step:1, prenom:"", nom:"", faiseurDeDisciple:"", assemblee:"", engage:false};
+function onboardDotsHTML(){
+  return '<div class="onboard-dots">' + [1,2,3].map(function(i){
+    return '<span class="onboard-dot'+(i===obState.step?' active':'')+'"></span>';
+  }).join("") + '</div>';
+}
+function onboardingHTML(){
+  if(obState.step===1){
+    return '<div class="onboard-wrap onboard-hero"><div class="onboard-card onboard-card-transparent">' +
+      '<div class="onboard-emblem">'+doveSvg(52)+'</div>' +
+      '<h1 class="onboard-title serif">Carnet Spirituel</h1>' +
+      '<p class="onboard-desc onboard-desc-hero">Suivez, structurez et développez votre vie spirituelle chaque jour.</p>' +
+      onboardDotsHTML() +
+      '<button id="ob-next" class="btn-primary" style="margin-top:18px;">Continuer</button>' +
+    '</div></div>';
+  }
+  if(obState.step===2){
+    return '<div class="onboard-wrap onboard-hero"><div class="onboard-card">' +
+      '<div class="onboard-kicker"><span>👤</span><span>Votre identité</span></div>' +
+      '<h1 class="onboard-title serif">Qui êtes-vous ?</h1>' +
+      '<p class="onboard-desc">Votre nom apparaîtra sur vos bilans exportables en PDF.</p>' +
+      '<div class="field-gap"><label class="field-label">Prénom</label><input id="ob-prenom" value="'+esc(obState.prenom)+'" placeholder="Ex : Grâce"></div>' +
+      '<div class="field-gap"><label class="field-label">Nom</label><input id="ob-nom" value="'+esc(obState.nom)+'" placeholder="Ex : KOUAKOU"></div>' +
+      '<div class="field-gap"><label class="field-label">Faiseur de disciple</label><input id="ob-faiseur" value="'+esc(obState.faiseurDeDisciple)+'" placeholder="Nom de votre faiseur de disciple"></div>' +
+      '<div class="field-gap"><label class="field-label">Assemblée chez</label><input id="ob-assemblee" value="'+esc(obState.assemblee)+'" placeholder="Ex : Sous l\'arbre, Temple de la Grâce..."></div>' +
+      onboardDotsHTML() +
+      '<div style="display:flex;gap:10px;margin-top:14px;">' +
+        '<button id="ob-back" class="btn-add" style="flex:0 0 auto;">‹ Retour</button>' +
+        '<button id="ob-next" class="btn-primary" style="flex:1;">Continuer</button>' +
+      '</div>' +
+    '</div></div>';
+  }
+  return '<div class="onboard-wrap onboard-hero"><div class="onboard-card">' +
+    '<div class="onboard-kicker"><span>🔥</span><span>Engagement</span></div>' +
+    '<h1 class="onboard-title serif">Un pas de foi</h1>' +
+    '<p class="onboard-desc">La discipline spirituelle se construit jour après jour. Prenez cet engagement avec vous-même avant de commencer.</p>' +
+    '<label class="onboard-check"><input type="checkbox" id="ob-engage"'+(obState.engage?' checked':'')+'>' +
+      '<span>Je m\'engage à être constant dans ma discipline spirituelle</span></label>' +
+    '<p id="ob-error" style="color:var(--alerte);font-size:12px;min-height:16px;margin:8px 0 0;"></p>' +
+    onboardDotsHTML() +
+    '<div style="display:flex;gap:10px;margin-top:10px;">' +
+      '<button id="ob-back" class="btn-add" style="flex:0 0 auto;">‹ Retour</button>' +
+      '<button id="ob-submit" class="btn-primary" style="flex:1;">Commencer mon parcours</button>' +
+    '</div>' +
+  '</div></div>';
+}
+function bindOnboarding(){
+  var next=document.getElementById("ob-next");
+  var back=document.getElementById("ob-back");
+  var submit=document.getElementById("ob-submit");
+  if(next) next.addEventListener("click", function(){
+    if(obState.step===2){
+      var nom=document.getElementById("ob-nom").value.trim();
+      var prenom=document.getElementById("ob-prenom").value.trim();
+      var faiseur=document.getElementById("ob-faiseur").value.trim();
+      var assemblee=document.getElementById("ob-assemblee").value.trim();
+      if(!nom){ document.getElementById("ob-nom").focus(); return; }
+      obState.nom=nom; obState.prenom=prenom; obState.faiseurDeDisciple=faiseur; obState.assemblee=assemblee;
+    }
+    obState.step++; render();
+  });
+  if(back) back.addEventListener("click", function(){ obState.step--; render(); });
+  if(submit) submit.addEventListener("click", function(){
+    var engage=document.getElementById("ob-engage").checked;
+    if(!engage){ document.getElementById("ob-error").textContent="Cochez la case pour confirmer votre engagement."; return; }
+    var p=Object.assign(defaultProfileShape(), {nom:obState.nom, prenom:obState.prenom, faiseurDeDisciple:obState.faiseurDeDisciple, assemblee:obState.assemblee, version:DATA_VERSION, engagement:true});
+    saveProfil(p); state.profile=p; obState={step:1,prenom:"",nom:"",faiseurDeDisciple:"",assemblee:"",engage:false}; render();
+  });
+}
+
+/* ---------- Verrou PIN ---------- */
+function lockHTML(){
+  return '<div class="onboard-wrap"><div class="onboard-card">' +
+    '<div class="onboard-kicker"><span>🔒</span><span>Verrouillé</span></div>' +
+    '<h1 class="onboard-title serif">Carnet Spirituel</h1>' +
+    '<p class="onboard-desc">Entrez votre code pour accéder à votre carnet.</p>' +
+    '<div class="field-gap"><input id="lockPin" type="password" inputmode="numeric" maxlength="6" placeholder="Code secret" style="text-align:center;letter-spacing:6px;font-size:20px;"></div>' +
+    '<p id="lockError" style="color:var(--alerte);font-size:12px;min-height:16px;margin:0 0 8px;"></p>' +
+    '<button class="btn-primary" id="lockSubmit">Déverrouiller</button>' +
+  '</div></div>';
+}
+function bindLock(){
+  var submit=document.getElementById("lockSubmit");
+  var pinInput=document.getElementById("lockPin");
+  function attempt(){
+    sha256Hex(pinInput.value||"").then(function(h){
+      if(h===state.profile.pinHash){ state.locked=false; render(); }
+      else{ document.getElementById("lockError").textContent="Code incorrect."; pinInput.value=""; pinInput.focus(); }
+    });
+  }
+  submit.addEventListener("click", attempt);
+  pinInput.addEventListener("keydown", function(ev){ if(ev.key==="Enter") attempt(); });
+  pinInput.focus();
+}
+
+/* ---------- Coquille (header + onglets) ---------- */
+function computeStreak(){
+  var all=loadAllEntries();
+  if(all.length===0) return 0;
+  var set={}; all.forEach(function(e){ set[e.date]=true; });
+  var streak=0; var cursor=new Date();
+  if(!set[todayISO()]) cursor.setDate(cursor.getDate()-1);
+  while(true){
+    var ds=cursor.getFullYear()+"-"+pad(cursor.getMonth()+1)+"-"+pad(cursor.getDate());
+    if(set[ds]){ streak++; cursor.setDate(cursor.getDate()-1); } else break;
+  }
+  return streak;
+}
+function shellHTML(){
+  var tabs=[
+    {id:"saisie", label:"Aujourd'hui", emoji:"🕊️"},
+    {id:"historique", label:"Historique", emoji:"📋"},
+    {id:"bilan", label:"Bilan mensuel", emoji:"📊"},
+    {id:"annuel", label:"Bilan annuel", emoji:"🗓️"},
+    {id:"profil", label:"Profil", emoji:"⚙️"}
+  ];
+  var tabsHTML = tabs.map(function(t){
+    return '<button class="tab-btn'+(state.tab===t.id?' active':'')+'" data-action="set-tab" data-tab="'+t.id+'"><span>'+t.emoji+'</span>'+t.label+'</button>';
+  }).join("");
+  var name = state.profile.prenom ? (state.profile.prenom+" "+state.profile.nom) : state.profile.nom;
+  var streak = computeStreak();
+
+  var content="";
+  if(state.tab==="saisie") content=saisieHTML();
+  else if(state.tab==="historique") content=historiqueHTML();
+  else if(state.tab==="bilan") content=bilanHTML();
+  else if(state.tab==="annuel") content=annuelHTML();
+  else if(state.tab==="profil") content=profilHTML();
+
+  return '' +
+  '<header class="no-print"><div class="container header-inner">' +
+    '<div class="brand"><div class="brand-left"><span class="brand-emblem">'+doveSvg(16)+'</span><div>' +
+      '<div class="brand-title">Carnet Spirituel</div><div class="brand-sub">'+esc(name)+'</div>' +
+    '</div></div>' +
+    (streak>0?'<span class="streak-pill">🔥 '+streak+' j.</span>':'') +
+    '</div>' +
+    '<div class="tabs">'+tabsHTML+'</div>' +
+  '</div></header>' +
+  '<main class="container">'+content+'</main>';
+}
+
+/* =========================================================
+   ONGLET SAISIE
+========================================================= */
+function totalDuJour(e){
+  var ps = e.priereSeul || {sm:0,fd:0,au:0,fm:0};
+  var t=(ps.sm||0)+(ps.fd||0)+(ps.au||0)+(ps.fm||0)+(e.meditationMin||0)+(e.lectureMin||0)+((e.livre&&e.livre.minutes)||0)+(e.etudeMin||0);
+  t += totalGroupe(e);
+  t += (e.retraite&&e.retraite.minutes)||0;
+  t += (e.evangelisation&&e.evangelisation.minutes)||0;
+  return t;
+}
+function totalSommeil(e){ var t=0; (e.sommeil||[]).forEach(function(s){ t+=sommeilDuree(s); }); return t; }
+function totalGroupe(e){ return (e.groupe&&e.groupe.sessions||[]).reduce(function(s,g){ return s+dureeEntre(g.debut,g.fin); },0); }
+function sommeilDuJour(e){ var t=0; (e.sommeil||[]).forEach(function(s){ if(s.leverDate===e.date) t+=sommeilDuree(s); }); return t; }
+/* Legacy : liste nominative (conservée pour l'historique et la rétrocompatibilité) */
+function priereAutresDuJour(e){ return (e.priereAutres||[]).reduce(function(s,a){ return s+(a.minutes||0); },0); }
+/* Agrégat "Prière Seul pour les autres" = PS/FD + PS/AU + PS/FM */
+function priereSeulAutresDuJour(e){
+  var ps = e.priereSeul || {fd:0,au:0,fm:0};
+  return (ps.fd||0)+(ps.au||0)+(ps.fm||0);
+}
+
+function sommeilSegmentsForDay(sommeil, D){
+  var segs=[];
+  (sommeil||[]).forEach(function(s){
+    if(!s.coucher||!s.lever||!s.coucherDate||!s.leverDate) return;
+    if(s.coucherDate===D && s.leverDate===D){
+      var c=timeToMin(s.coucher), l=timeToMin(s.lever);
+      if(l>c) segs.push({start:c,end:l});
+    } else if(s.coucherDate===D && s.leverDate!==D){
+      segs.push({start:timeToMin(s.coucher), end:1440});
+    } else if(s.leverDate===D && s.coucherDate!==D){
+      segs.push({start:0, end:timeToMin(s.lever)});
+    }
+  });
+  return segs;
+}
+function rhythmBarHTML(e){
+  function toPct(m){ return (m/1440)*100; }
+  var segs = sommeilSegmentsForDay(e.sommeil, e.date).map(function(s){ return {s:s.start,e:s.end,c:"#7d84ad"}; });
+  (e.groupe&&e.groupe.sessions||[]).forEach(function(g){
+    if(!g.debut||!g.fin) return;
+    var d=timeToMin(g.debut), f=timeToMin(g.fin);
+    if(f<=d){ segs.push({s:d,e:1440,c:"#C9922F"}); segs.push({s:0,e:f,c:"#C9922F"}); }
+    else segs.push({s:d,e:f,c:"#C9922F"});
+  });
+  var segHTML = segs.map(function(seg){
+    var w=Math.max(toPct(seg.e-seg.s),1);
+    return '<div class="rhythm-seg" style="left:'+toPct(seg.s)+'%;width:'+w+'%;background:'+seg.c+';"></div>';
+  }).join("");
+  return '<div class="rhythm-bar" id="rhythmBar">'+segHTML+'</div>' +
+    '<div class="rhythm-scale"><span>00h</span><span>06h</span><span>12h</span><span>18h</span><span>24h</span></div>' +
+    '<div class="rhythm-legend"><span><i class="dot" style="background:#7d84ad"></i>Sommeil</span>' +
+    '<span><i class="dot" style="background:#C9922F"></i>Prière en groupe</span></div>';
+}
+function objBadge(reached, target){
+  if(!target) return "";
+  return reached ? ' <span style="color:var(--aube-clair);font-weight:700;">✓</span>' : "";
+}
+function progBarMinutes(label, val, target){
+  var pct = target>0? Math.min(100, Math.round((val/target)*100)) : 0;
+  var reached = target>0 && val>=target;
+  return '<div class="prog-row"><div class="prog-label"><span>'+esc(label)+'</span><span>'+formatMin(val)+' / '+formatMin(target)+objBadge(reached,target)+'</span></div>' +
+    '<div class="prog-track"><div class="prog-fill" style="width:'+pct+'%;'+(reached?'background:var(--grace);':'')+'"></div></div></div>';
+}
+function progBarCount(label, val, target, unit){
+  var pct = target>0? Math.min(100, Math.round((val/target)*100)) : 0;
+  var reached = target>0 && val>=target;
+  return '<div class="prog-row"><div class="prog-label"><span>'+esc(label)+'</span><span>'+val+' / '+target+' '+unit+objBadge(reached,target)+'</span></div>' +
+    '<div class="prog-track"><div class="prog-fill" style="width:'+pct+'%;'+(reached?'background:var(--grace);':'')+'"></div></div></div>';
+}
+function dailyFeedbackHTML(e, obj){
+  var msgs=[];
+  var evangPersonnes = (e.evangelisation&&e.evangelisation.personnes)||0;
+  if(obj.priereMin>0){
+    if(e.priereMin>=obj.priereMin) msgs.push("✅ Objectif de prière personnelle atteint aujourd'hui.");
+    else if((e.priereMin||0)===0) msgs.push("⚠️ Aucun temps de prière personnelle enregistré aujourd'hui.");
+  }
+  if(obj.priereAutresMin>0 && priereSeulAutresDuJour(e)===0) msgs.push("💡 Pensez à intercéder pour quelqu'un aujourd'hui.");
+  if(obj.meditationMin>0 && e.meditationMin>=obj.meditationMin) msgs.push("✅ Objectif de méditation atteint aujourd'hui.");
+  if(obj.evangelisationPersonnes>0 && evangPersonnes>=obj.evangelisationPersonnes) msgs.push("✅ Objectif d'évangélisation atteint aujourd'hui.");
+  if(!msgs.length) return "";
+  return '<div style="margin-top:14px;display:flex;flex-direction:column;gap:6px;">' +
+    msgs.map(function(m){ return '<div class="feedback-line">'+esc(m)+'</div>'; }).join("") +
+  '</div>';
+}
+function progressWrapHTML(e){
+  var obj = state.profile.objectifs;
+  var evangPersonnes = (e.evangelisation&&e.evangelisation.personnes)||0;
+  return '<div id="progressWrap">' +
+    progBarMinutes("Prière pour moi-même", e.priereMin, obj.priereMin) +
+    progBarMinutes("Prière pour les autres", priereSeulAutresDuJour(e), obj.priereAutresMin) +
+    progBarMinutes("Méditation", e.meditationMin, obj.meditationMin) +
+    progBarCount("Chapitres", e.chapitresLus, obj.chapitres, "ch.") +
+    progBarCount("Évangélisation", evangPersonnes, obj.evangelisationPersonnes, "pers.") +
+    progBarMinutes("Sommeil (nuit terminée aujourd'hui)", sommeilDuJour(e), obj.sommeilMin) +
+    dailyFeedbackHTML(e, obj) +
+  '</div>';
+}
+function dureeInputHTML(path, minutes, label){
+  var h=Math.floor((minutes||0)/60), m=(minutes||0)%60;
+  return (label?'<label class="field-label">'+esc(label)+'</label>':'') +
+    '<div class="duree-wrap" data-duration-container="'+path+'">' +
+      '<input type="number" min="0" data-part="h" value="'+h+'">' +
+      '<span class="duree-unit">h</span>' +
+      '<input type="number" min="0" max="59" data-part="m" value="'+m+'">' +
+      '<span class="duree-unit">min</span>' +
+    '</div>';
+}
+
+function saisieHTML(){
+  var e=state.entry;
+  var verset = VERSETS[dayOfYear(e.date) % VERSETS.length];
+  return '' +
+  '<div class="verset-card"><p class="verset-txt">« '+esc(verset.t)+' »</p><p class="verset-ref">'+esc(verset.r)+'</p></div>' +
+
+  '<div class="date-nav">' +
+    '<button data-action="shift-date" data-delta="-1">‹</button>' +
+    '<input type="date" id="dateInput" value="'+e.date+'" max="'+todayISO()+'">' +
+    '<button data-action="shift-date" data-delta="1"'+(e.date>=todayISO()?' disabled style="opacity:0.3;"':'')+'>›</button>' +
+  '</div>' +
+  '<p class="date-caption">'+dateLisible(e.date)+'</p>' +
+  '<p class="autosave-status" id="autosaveStatus"></p>' +
+
+  '<div class="resume">' +
+    '<div class="resume-label">Temps consacré aujourd\'hui</div>' +
+    '<div class="resume-value serif" id="totalDuJourValue">'+formatMin(totalDuJour(e))+'</div>' +
+    '<div id="rhythmBarWrap">'+rhythmBarHTML(e)+'</div>' +
+    progressWrapHTML(e) +
+  '</div>' +
+
+  '<div class="card"><div class="card-head"><div class="card-title"><span class="emoji">❤️</span>Prière Seul (PS)</div></div>' +
+    '<div class="grid-2">' +
+      '<div>'+dureeInputHTML("priereSeul.sm", e.priereSeul.sm, "PS/SM — pour Soi-même")+'</div>' +
+      '<div>'+dureeInputHTML("priereSeul.fd", e.priereSeul.fd, "PS/FD — pour le Faiseur de Disciple")+'</div>' +
+      '<div>'+dureeInputHTML("priereSeul.au", e.priereSeul.au, "PS/AU — pour les Autres")+'</div>' +
+      '<div>'+dureeInputHTML("priereSeul.fm", e.priereSeul.fm, "PS/FM — pour la Famille")+'</div>' +
+    '</div></div>' +
+
+  '<div class="card"><div class="card-head"><div class="card-title"><span class="emoji">📋</span>Prière en groupe</div><span class="badge" id="groupeTotalBadge">'+formatMin(totalGroupe(e))+'</span></div>' +
+    '<div id="groupeList">'+groupeListHTML(e)+'</div>' +
+    '<button class="btn-add" data-action="add-groupe" style="margin-top:10px;">+ Ajouter une session</button>' +
+  '</div>' +
+
+  '<div class="card"><div class="card-head"><div class="card-title"><span class="emoji">🧘</span>Méditation (RDQD)</div></div>' +
+    dureeInputHTML("meditationMin", e.meditationMin, "Temps de méditation") +
+  '</div>' +
+
+  '<div class="card"><div class="card-head"><div class="card-title"><span class="emoji">📖</span>Parole de Dieu</div></div>' +
+    '<div class="grid-2">' +
+      '<div><label class="field-label">Chapitres lus</label><input type="number" min="0" data-path="chapitresLus" data-type="number" value="'+e.chapitresLus+'"></div>' +
+      '<div>'+dureeInputHTML("lectureMin", e.lectureMin, "Temps de lecture biblique")+'</div>' +
+    '</div>' +
+    '<div class="sep">' +
+      '<div class="sub-label"><span>📚</span>Lecture chrétienne</div>' +
+      '<div class="grid-2">' +
+        '<div><label class="field-label">Titre du livre (optionnel)</label><input data-path="livre.titre" value="'+esc(e.livre.titre)+'" placeholder="Ex : Le combat chrétien"></div>' +
+        '<div>'+dureeInputHTML("livre.minutes", e.livre.minutes, "Temps de lecture")+'</div>' +
+      '</div>' +
+    '</div></div>' +
+
+  '<div class="card"><div class="card-head"><div class="card-title"><span class="emoji">🎓</span>Étude</div></div>' +
+    dureeInputHTML("etudeMin", e.etudeMin, "Temps d'étude") +
+  '</div>' +
+
+  '<div class="card"><div class="card-head"><div class="card-title"><span class="emoji">🏕️</span>Retraite spirituelle</div></div>' +
+    '<div id="retraiteBody">'+retraiteBodyHTML(e)+'</div>' +
+  '</div>' +
+
+  '<div class="card"><div class="card-head"><div class="card-title"><span class="emoji">🔥</span>Jeûne</div></div>' +
+    '<div id="jeuneBody">'+jeuneBodyHTML(e)+'</div>' +
+  '</div>' +
+
+  '<div class="card"><div class="card-head"><div class="card-title"><span class="emoji">📣</span>Évangélisation</div></div>' +
+    '<div class="grid-2">' +
+      '<div><label class="field-label">Personnes évangélisées</label><input type="number" min="0" data-path="evangelisation.personnes" data-type="number" value="'+e.evangelisation.personnes+'"></div>' +
+      '<div>'+dureeInputHTML("evangelisation.minutes", e.evangelisation.minutes, "Temps d'évangélisation")+'</div>' +
+    '</div>' +
+    '<div style="margin-top:12px;max-width:260px;"><label class="field-label">Type d\'évangélisation</label><select data-path="evangelisation.type">' +
+      '<option value=""'+(e.evangelisation.type===""?" selected":"")+'>Choisir...</option>' +
+      '<option value="personnel"'+(e.evangelisation.type==="personnel"?" selected":"")+'>Personnelle (1-à-1)</option>' +
+      '<option value="groupe"'+(e.evangelisation.type==="groupe"?" selected":"")+'>En groupe</option>' +
+      '<option value="public"'+(e.evangelisation.type==="public"?" selected":"")+'>Publique</option>' +
+    '</select></div></div>' +
+
+  '<div class="card"><div class="card-head"><div class="card-title"><span class="emoji">🌙</span>Sommeil</div><span class="badge" id="sommeilTotalBadge">'+formatMin(totalSommeil(e))+'</span></div>' +
+    '<p style="font-size:11px;color:var(--encre-doux);margin:-6px 0 12px;">La nuit se termine le jour où vous vous réveillez : elle s\'ajoute automatiquement à ce jour-là (la date de coucher est pré-remplie sur la veille).</p>' +
+    '<div id="sommeilList">'+sommeilListHTML(e)+'</div>' +
+    '<button class="btn-add" data-action="add-sommeil" style="margin-top:10px;">+ Ajouter une période de sommeil</button>' +
+  '</div>' +
+
+  '<div class="card"><div class="card-head"><div class="card-title"><span class="emoji">🙏</span>Sujets de prière</div></div>' +
+    '<div class="sub-label">Jusqu\'à 3 sujets pour lesquels intercéder aujourd\'hui</div>' +
+    '<div id="sujetsList">'+sujetsPriereListHTML(e)+'</div>' +
+    ((e.sujetsPriere||[]).length<3 ? '<button class="btn-add" id="add-sujet-btn" data-action="add-sujet" style="margin-top:10px;">+ Ajouter un sujet</button>' : '') +
+  '</div>' +
+
+  '<div class="card"><div class="card-head"><div class="card-title"><span class="emoji">📝</span>Notes libres</div></div>' +
+    '<textarea rows="3" data-path="notes" placeholder="Autres remarques sur votre journée...">'+esc(e.notes)+'</textarea>' +
+  '</div>' +
+
+  '<div class="fixed-save no-print">' +
+    '<button class="btn-primary'+(state._savedFlag?' saved':'')+'" id="saveBtn" data-action="save-entry">' +
+      (state._savedFlag ? '✅ Journée enregistrée' : 'Enregistrer la journée') +
+    '</button>' +
+  '</div>';
+}
+
+function jeuneBodyHTML(e){
+  var j=e.jeune;
+  var extra = j.actif ? (
+    '<div style="margin-top:14px;max-width:240px;"><label class="field-label">Type</label><select data-path="jeune.type">' +
+        '<option value=""'+(j.type===""?" selected":"")+'>Choisir...</option>' +
+        '<option value="Partiel"'+(j.type==="Partiel"?" selected":"")+'>Partiel</option>' +
+        '<option value="Complet"'+(j.type==="Complet"?" selected":"")+'>Complet</option>' +
+      '</select></div>' +
+    '<div style="margin-top:12px;"><label class="field-label">Intention spirituelle</label>' +
+      '<input data-path="jeune.objectif" value="'+esc(j.objectif)+'" placeholder="Ex : percée, direction, guérison..."></div>'
+  ) : "";
+  return '<div class="row" style="align-items:center;">' +
+    '<button class="toggle'+(j.actif?' on':'')+'" data-action="toggle-jeune"><span class="toggle-knob"></span></button>' +
+    '<span style="font-size:14px;">'+(j.actif?"Jour de jeûne":"Pas de jeûne aujourd'hui")+'</span>' +
+  '</div>' + extra;
+}
+function retraiteBodyHTML(e){
+  var r=e.retraite;
+  var extra = r.actif ? (
+    '<div style="margin-top:14px;">' +
+      '<div class="grid-2">' +
+        '<div>'+dureeInputHTML("retraite.minutes", r.minutes, "Temps de retraite")+'</div>' +
+        '<div><label class="field-label">Type</label><select data-path="retraite.type">' +
+          '<option value=""'+(r.type===""?" selected":"")+'>Choisir...</option>' +
+          '<option value="courte"'+(r.type==="courte"?" selected":"")+'>Courte</option>' +
+          '<option value="journée"'+(r.type==="journée"?" selected":"")+'>Journée</option>' +
+          '<option value="prolongée"'+(r.type==="prolongée"?" selected":"")+'>Prolongée</option>' +
+        '</select></div>' +
+      '</div>' +
+      '<div style="margin-top:12px;"><label class="field-label">Note spirituelle</label>' +
+        '<input data-path="retraite.note" value="'+esc(r.note)+'" placeholder="Ce que vous avez vécu pendant cette retraite..."></div>' +
+    '</div>'
+  ) : "";
+  return '<div class="row" style="align-items:center;">' +
+    '<button class="toggle grace'+(r.actif?' on':'')+'" data-action="toggle-retraite"><span class="toggle-knob"></span></button>' +
+    '<span style="font-size:14px;">'+(r.actif?"Retraite spirituelle aujourd'hui":"Pas de retraite aujourd'hui")+'</span>' +
+  '</div>' + extra;
+}
+function sujetsPriereListHTML(e){
+  return (e.sujetsPriere||[]).map(function(s,i){
+    return '<div class="row">' +
+      '<div style="flex:1;min-width:180px;"><input data-path="sujetsPriere.'+i+'.texte" value="'+esc(s.texte)+'" placeholder="Ex : ma famille, une décision à prendre..."></div>' +
+      '<button class="icon-btn" data-action="remove-sujet" data-index="'+i+'" title="Supprimer">🗑</button>' +
+    '</div>';
+  }).join("") || '<p style="font-size:12px;color:var(--encre-doux);">Aucun sujet ajouté.</p>';
+}
+function priereAutresListHTML(e){
+  return (e.priereAutres||[]).map(function(a,i){
+    return '<div class="row">' +
+      '<div style="flex:1;min-width:140px;"><input data-path="priereAutres.'+i+'.nom" value="'+esc(a.nom)+'" placeholder="Nom de la personne (ou \'Famille\')"></div>' +
+      dureeInputHTML("priereAutres."+i+".minutes", a.minutes, null) +
+      '<button class="icon-btn" data-action="remove-autre" data-index="'+i+'" title="Supprimer">🗑</button>' +
+    '</div>';
+  }).join("") || '<p style="font-size:12px;color:var(--encre-doux);">Aucune personne ajoutée.</p>';
+}
+function sommeilListHTML(e){
+  return (e.sommeil||[]).map(function(s,i){
+    return '<div class="row">' +
+      '<div><label class="field-label">Coucher</label><div class="datetime-pair">' +
+        '<input type="date" data-path="sommeil.'+i+'.coucherDate" value="'+esc(s.coucherDate)+'">' +
+        '<input type="time" data-path="sommeil.'+i+'.coucher" value="'+esc(s.coucher)+'"></div></div>' +
+      '<div><label class="field-label">Lever</label><div class="datetime-pair">' +
+        '<input type="date" data-path="sommeil.'+i+'.leverDate" value="'+esc(s.leverDate)+'">' +
+        '<input type="time" data-path="sommeil.'+i+'.lever" value="'+esc(s.lever)+'"></div></div>' +
+      '<span class="badge" id="sommeil-badge-'+i+'">'+formatMin(sommeilDuree(s))+'</span>' +
+      '<button class="icon-btn" data-action="remove-sommeil" data-index="'+i+'" title="Supprimer">🗑</button>' +
+    '</div>';
+  }).join("") || '<p style="font-size:12px;color:var(--encre-doux);">Aucune période ajoutée.</p>';
+}
+function groupeListHTML(e){
+  return (e.groupe&&e.groupe.sessions||[]).map(function(g,i){
+    return '<div class="row">' +
+      '<div><label class="field-label">Début</label><input type="time" data-path="groupe.sessions.'+i+'.debut" value="'+esc(g.debut)+'"></div>' +
+      '<div><label class="field-label">Fin</label><input type="time" data-path="groupe.sessions.'+i+'.fin" value="'+esc(g.fin)+'"></div>' +
+      '<span class="badge" id="groupe-badge-'+i+'">'+formatMin(dureeEntre(g.debut,g.fin))+'</span>' +
+      '<button class="icon-btn" data-action="remove-groupe" data-index="'+i+'" title="Supprimer">🗑</button>' +
+    '</div>';
+  }).join("") || '<p style="font-size:12px;color:var(--encre-doux);">Aucune session ajoutée.</p>';
+}
+
+function updateComputedDisplays(){
+  var e=state.entry;
+  var tv=document.getElementById("totalDuJourValue"); if(tv) tv.textContent=formatMin(totalDuJour(e));
+  var rb=document.getElementById("rhythmBarWrap"); if(rb) rb.innerHTML=rhythmBarHTML(e);
+  var pw=document.getElementById("progressWrap"); if(pw) pw.outerHTML=progressWrapHTML(e);
+  var st=document.getElementById("sommeilTotalBadge"); if(st) st.textContent=formatMin(totalSommeil(e));
+  var gt=document.getElementById("groupeTotalBadge"); if(gt) gt.textContent=formatMin(totalGroupe(e));
+  (e.sommeil||[]).forEach(function(s,i){ var b=document.getElementById("sommeil-badge-"+i); if(b) b.textContent=formatMin(sommeilDuree(s)); });
+  (e.groupe&&e.groupe.sessions||[]).forEach(function(g,i){ var b=document.getElementById("groupe-badge-"+i); if(b) b.textContent=formatMin(dureeEntre(g.debut,g.fin)); });
+}
+function markDirtyAndAutosave(){
+  if(isFutureDate(state.entry.date)) return;
+  clearTimeout(state._autosaveTimer);
+  state._autosaveTimer = setTimeout(function(){
+    var ok = saveEntryLS(state.entry.date, state.entry);
+    var ind = document.getElementById("autosaveStatus");
+    if(ok){ if(ind) ind.textContent = "Sauvegardé automatiquement à "+nowHM(); }
+    else { showToast("Échec de la sauvegarde automatique (stockage plein ou navigation privée ?).", "error"); }
+  }, 800);
+}
+function afterEntryMutated(){
+  if(state.entry.groupe) state.entry.groupe.totalMinutes = totalGroupe(state.entry);
+  if(state.entry.priereSeul) state.entry.priereMin = state.entry.priereSeul.sm;
+  if(state.tab==="saisie") updateComputedDisplays();
+  markDirtyAndAutosave();
+}
+
+/* =========================================================
+   ONGLET HISTORIQUE
+========================================================= */
+function historiqueHTML(){
+  var all = loadAllEntries();
+  var personnesSet={};
+  all.forEach(function(e){ (e.priereAutres||[]).forEach(function(a){ if(a.nom && a.nom.trim()) personnesSet[a.nom.trim()]=true; }); });
+  var personnesList = Object.keys(personnesSet).sort();
+  var f = state.histFilters;
+  var filterBar = '<div class="hist-filters no-print">' +
+    '<input type="text" id="histSearch" placeholder="Rechercher une date..." value="'+esc(f.q)+'">' +
+    '<label class="hist-check"><input type="checkbox" id="histJeune" '+(f.jeuneOnly?"checked":"")+'> Jeûne uniquement</label>' +
+    '<select id="histPersonne"><option value="">Toutes les personnes</option>' +
+      personnesList.map(function(n){ return '<option value="'+esc(n)+'"'+(f.personne===n?" selected":"")+'>'+esc(n)+'</option>'; }).join("") +
+    '</select></div>';
+  return filterBar + '<div id="histList">'+renderHistList(all)+'</div>';
+}
+function renderHistList(all){
+  var f=state.histFilters;
+  var filtered = all.filter(function(e){
+    if(f.jeuneOnly && !(e.jeune && e.jeune.actif)) return false;
+    if(f.personne && !(e.priereAutres||[]).some(function(a){ return a.nom && a.nom.trim()===f.personne; })) return false;
+    if(f.q){ var hay=(dateLisible(e.date)+" "+e.date).toLowerCase(); if(hay.indexOf(f.q.toLowerCase())===-1) return false; }
+    return true;
+  });
+  if(filtered.length===0){
+    return '<div class="empty-state"><div class="emoji">📋</div><p>'+(all.length===0?"Aucune journée enregistrée pour l'instant.":"Aucun résultat pour ces filtres.")+'</p></div>';
+  }
+  return filtered.map(function(e){
+    var s=totalSommeil(e);
+    return '<button class="hist-item" data-action="open-date" data-date="'+e.date+'">' +
+      '<div><div class="hist-date">'+dateLisible(e.date)+'</div>' +
+      '<div class="hist-meta"><span>Prière '+formatMin(e.priereMin)+'</span><span>Sommeil '+formatMin(s)+'</span>' +
+      (e.jeune&&e.jeune.actif?'<span style="color:var(--alerte);">Jeûne</span>':'')+
+      (e.retraite&&e.retraite.actif?'<span style="color:var(--grace);">Retraite</span>':'')+
+      '</div></div><span>›</span></button>';
+  }).join("");
+}
+
+/* =========================================================
+   ANALYSE (mensuelle / annuelle)
+========================================================= */
+function analyserPeriode(entries, totalJoursPeriode, periodTxt){
+  var j=entries.length;
+  function sum(fn){ return entries.reduce(function(s,e){ return s+fn(e); },0); }
+  function countDays(fn){ return entries.filter(fn).length; }
+  var evangActif = function(e){ return e.evangelisation && ((e.evangelisation.personnes||0)>0 || (e.evangelisation.minutes||0)>0); };
+  var disciplineActif = function(e){
+    return (e.priereMin||0)>0 || priereSeulAutresDuJour(e)>0 || totalGroupe(e)>0 || (e.meditationMin||0)>0 ||
+      (e.lectureMin||0)>0 || (e.etudeMin||0)>0 || (e.jeune&&e.jeune.actif) || (e.retraite&&e.retraite.actif) || evangActif(e);
+  };
+
+  var totaux={
+    priereMoi: sum(function(e){return e.priereMin||0;}),
+    priereAutres: sum(priereSeulAutresDuJour),
+    priereSeulSM: sum(function(e){return (e.priereSeul&&e.priereSeul.sm)||0;}),
+    priereSeulFD: sum(function(e){return (e.priereSeul&&e.priereSeul.fd)||0;}),
+    priereSeulAU: sum(function(e){return (e.priereSeul&&e.priereSeul.au)||0;}),
+    priereSeulFM: sum(function(e){return (e.priereSeul&&e.priereSeul.fm)||0;}),
+    priereGroupe: sum(totalGroupe),
+    meditation: sum(function(e){return e.meditationMin||0;}),
+    meditationJours: countDays(function(e){return (e.meditationMin||0)>0;}),
+    chapitres: sum(function(e){return e.chapitresLus||0;}),
+    lecture: sum(function(e){return e.lectureMin||0;}),
+    livre: sum(function(e){return (e.livre&&e.livre.minutes)||0;}),
+    sommeil: sum(function(e){return (e.sommeil||[]).reduce(function(s,x){return s+sommeilDuree(x);},0);}),
+    etude: sum(function(e){return e.etudeMin||0;}),
+    jeuneComplet: countDays(function(e){return e.jeune&&e.jeune.actif&&e.jeune.type==="Complet";}),
+    jeunePartiel: countDays(function(e){return e.jeune&&e.jeune.actif&&e.jeune.type==="Partiel";}),
+    jeuneTotal: countDays(function(e){return e.jeune&&e.jeune.actif;}),
+    jeuneDureeTotal: sum(function(e){return (e.jeune&&e.jeune.actif&&e.jeune.duree)||0;}),
+    retraiteJours: countDays(function(e){return e.retraite&&e.retraite.actif;}),
+    retraiteMin: sum(function(e){return (e.retraite&&e.retraite.minutes)||0;}),
+    evangelisationJours: countDays(evangActif),
+    evangelisationPersonnes: sum(function(e){return (e.evangelisation&&e.evangelisation.personnes)||0;}),
+    evangelisationMin: sum(function(e){return (e.evangelisation&&e.evangelisation.minutes)||0;}),
+    evangelisationPersonnel: countDays(function(e){return e.evangelisation&&e.evangelisation.type==="personnel";}),
+    evangelisationGroupe: countDays(function(e){return e.evangelisation&&e.evangelisation.type==="groupe";}),
+    evangelisationPublic: countDays(function(e){return e.evangelisation&&e.evangelisation.type==="public";})
+  };
+  totaux.priereMoiEtAutres = totaux.priereMoi + totaux.priereAutres;
+  totaux.totalPriereSeul = totaux.priereSeulSM + totaux.priereSeulFD + totaux.priereSeulAU + totaux.priereSeulFM;
+
+  var joursPriere = {
+    moi: countDays(function(e){ return (e.priereMin||0)>0; }),
+    autres: countDays(function(e){ return priereSeulAutresDuJour(e)>0; }),
+    sm: countDays(function(e){ return ((e.priereSeul&&e.priereSeul.sm)||0)>0; }),
+    fd: countDays(function(e){ return ((e.priereSeul&&e.priereSeul.fd)||0)>0; }),
+    au: countDays(function(e){ return ((e.priereSeul&&e.priereSeul.au)||0)>0; }),
+    fm: countDays(function(e){ return ((e.priereSeul&&e.priereSeul.fm)||0)>0; }),
+    groupe: countDays(function(e){ return totalGroupe(e)>0; }),
+    evangelisation: totaux.evangelisationJours,
+    discipline: countDays(disciplineActif)
+  };
+
+  var personnes={};
+  entries.forEach(function(e){ (e.priereAutres||[]).forEach(function(a){
+    if(!a.nom||!a.nom.trim()) return;
+    var key=a.nom.trim();
+    if(!personnes[key]) personnes[key]={nom:key,jours:0,minutes:0};
+    personnes[key].jours+=1; personnes[key].minutes+=(a.minutes||0);
+  }); });
+  var personnesTriees=Object.keys(personnes).map(function(k){return personnes[k];}).sort(function(a,b){return b.minutes-a.minutes;});
+
+  function moy(v){ return j>0?v/j:0; }
+  var moyennes={priereMoi:moy(totaux.priereMoi), priereAutres:moy(totaux.priereAutres), priereGroupe:moy(totaux.priereGroupe),
+    meditation:moy(totaux.meditation), lecture:moy(totaux.lecture), sommeil:moy(totaux.sommeil), etude:moy(totaux.etude),
+    priereSeul:moy(totaux.totalPriereSeul)};
+  var tauxRegularite = totalJoursPeriode>0 ? j/totalJoursPeriode : 0;
+  var ratios = {
+    priereMoi: totalJoursPeriode>0 ? joursPriere.moi/totalJoursPeriode : 0,
+    priereAutres: totalJoursPeriode>0 ? joursPriere.autres/totalJoursPeriode : 0,
+    evangelisation: totalJoursPeriode>0 ? joursPriere.evangelisation/totalJoursPeriode : 0,
+    discipline: totalJoursPeriode>0 ? joursPriere.discipline/totalJoursPeriode : 0
+  };
+
+  var recos=[];
+  if(j===0){
+    recos.push({type:"attention", text:"Aucune journée n'a été enregistrée "+periodTxt+". Commencez par une saisie quotidienne, même brève, pour obtenir un bilan utile."});
+  } else {
+    if(tauxRegularite<0.5) recos.push({type:"attention", text:"Seulement "+j+" jour(s) sur "+totalJoursPeriode+" ont été enregistrés ("+Math.round(tauxRegularite*100)+"%). Une saisie plus régulière donnera une image plus fidèle de votre marche spirituelle."});
+    else if(tauxRegularite>=0.9) recos.push({type:"positif", text:"Excellente régularité : "+j+" jours sur "+totalJoursPeriode+" enregistrés ("+Math.round(tauxRegularite*100)+"%). Cette constance est en elle-même un fruit spirituel."});
+
+    if(moyennes.sommeil<360) recos.push({type:"attention", text:"Votre sommeil moyen est de "+formatMin(moyennes.sommeil)+" par jour, en dessous du seuil recommandé de 7 à 8h. Veillez à vous coucher plus tôt."});
+    else if(moyennes.sommeil>=420) recos.push({type:"positif", text:"Votre sommeil moyen ("+formatMin(moyennes.sommeil)+"/jour) est dans une bonne fourchette. Continuez à préserver ce rythme."});
+
+    if(moyennes.priereMoi<15) recos.push({type:"conseil", text:"Votre temps de prière pour vous-même est de "+formatMin(moyennes.priereMoi)+" en moyenne par jour. Essayez d'ajouter progressivement 5 à 10 minutes."});
+    else if(moyennes.priereMoi>=30) recos.push({type:"positif", text:"Votre prière personnelle est soutenue, avec "+formatMin(moyennes.priereMoi)+" en moyenne par jour. Persévérez dans cette discipline."});
+
+    if(joursPriere.autres===0) recos.push({type:"conseil", text:"Aucun temps de prière pour les autres n'a été enregistré "+periodTxt+". Pensez à intercéder pour votre famille et votre entourage."});
+    else recos.push({type:"positif", text:"Vous avez prié pour les autres "+joursPriere.autres+" jour(s) "+periodTxt+", pour un total de "+formatMin(totaux.priereAutres)+"."});
+
+    if(totaux.jeuneTotal===0) recos.push({type:"conseil", text:"Aucun jour de jeûne n'a été observé "+periodTxt+". Envisagez d'y consacrer un moment, même court."});
+    else recos.push({type:"positif", text:"Vous avez jeûné "+totaux.jeuneTotal+" jour(s) "+periodTxt+" ("+totaux.jeuneComplet+" complet(s), "+totaux.jeunePartiel+" partiel(s)). Une discipline précieuse à maintenir avec sagesse."});
+
+    if(totaux.chapitres<totalJoursPeriode) recos.push({type:"conseil", text:totaux.chapitres+" chapitre(s) lu(s) "+periodTxt+", pour un objectif indicatif d'un chapitre par jour ("+totalJoursPeriode+"). Un plan de lecture simple peut vous aider."});
+    else recos.push({type:"positif", text:totaux.chapitres+" chapitres lus "+periodTxt+" : une belle avancée dans la Parole."});
+
+    if(totaux.meditationJours===0) recos.push({type:"conseil", text:"Aucun moment de méditation enregistré "+periodTxt+". Même quelques minutes de méditation silencieuse sur un verset peuvent enrichir votre marche."});
+
+    if(personnesTriees.length===0) recos.push({type:"conseil", text:"Aucune personne nommée dans vos temps d'intercession "+periodTxt+". Notez les noms de ceux pour qui vous priez."});
+    else recos.push({type:"positif", text:"Vous avez intercédé pour "+personnesTriees.length+" personne(s) nommément "+periodTxt+"."});
+
+    if(totaux.priereGroupe===0) recos.push({type:"conseil", text:"Aucune session de prière en groupe enregistrée "+periodTxt+". La prière communautaire reste un appui important."});
+    if(moyennes.etude<10) recos.push({type:"conseil", text:"Le temps d'étude reste limité "+periodTxt+". Un temps d'étude régulier approfondit la compréhension de la Parole."});
+
+    if(totaux.retraiteJours===0) recos.push({type:"conseil", text:"Aucune retraite spirituelle enregistrée "+periodTxt+". Un temps mis à part, même une demi-journée, peut renouveler votre marche avec Dieu."});
+    else recos.push({type:"positif", text:"Vous avez pris "+totaux.retraiteJours+" temps de retraite spirituelle "+periodTxt+", pour "+formatMin(totaux.retraiteMin)+" au total."});
+
+    if(totaux.evangelisationJours===0) recos.push({type:"conseil", text:"Aucune action d'évangélisation enregistrée "+periodTxt+". Envisagez de partager votre foi, même ponctuellement, avec une personne de votre entourage."});
+    else recos.push({type:"positif", text:"Vous avez évangélisé "+totaux.evangelisationPersonnes+" personne(s) sur "+totaux.evangelisationJours+" jour(s) "+periodTxt+"."});
+  }
+  return {totalJoursPeriode:totalJoursPeriode, joursEnregistres:j, totaux:totaux, moyennes:moyennes, joursPriere:joursPriere,
+    tauxRegularite:tauxRegularite, ratios:ratios, personnesTriees:personnesTriees, recos:recos};
+}
+
+/* ---------- Score spirituel global (/100) — couche analytics centralisée ---------- */
+function computeSpiritualScore(a, objectifs){
+  var tj = a.totalJoursPeriode || 1;
+  function pct(avg, target){ if(!target||target<=0) return avg>0?100:0; return Math.min(100, Math.round((avg/target)*100)); }
+  var priereScore = pct(a.moyennes.priereMoi, objectifs.priereMin);
+  var meditationScore = pct(a.moyennes.meditation, objectifs.meditationMin||10);
+  var chapMoy = a.totaux.chapitres/tj;
+  var etudeMoy = a.totaux.etude/tj;
+  var paroleScore = Math.min(100, Math.round(
+    Math.min(100,(chapMoy/(objectifs.chapitres||1))*100)*0.6 + Math.min(100,(etudeMoy/(objectifs.etudeMin||15))*100)*0.4
+  ));
+  var evangScore = Math.round(a.ratios.evangelisation*100);
+  var regulariteScore = Math.round(a.tauxRegularite*100);
+  var score = Math.round(priereScore*0.30 + meditationScore*0.15 + paroleScore*0.20 + evangScore*0.15 + regulariteScore*0.20);
+  var niveau = score>=75 ? "Fort" : (score>=45 ? "Moyen" : "Faible");
+  return {score:score, niveau:niveau, detail:{priereScore:priereScore, meditationScore:meditationScore,
+    paroleScore:paroleScore, evangScore:evangScore, regulariteScore:regulariteScore}};
+}
+function scoreBlockHTML(score){
+  var color = score.score>=75?"var(--grace)":(score.score>=45?"var(--aube)":"var(--alerte)");
+  return '<div class="section-label">Score spirituel global</div>' +
+    '<div class="score-block">' +
+    '<div class="score-num" style="color:'+color+';">'+score.score+'<span class="unit">/100</span></div>' +
+    '<div><div class="score-niveau" style="color:'+color+';">Niveau '+score.niveau+'</div>' +
+    '<div class="score-detail">Prière '+score.detail.priereScore+'% · Méditation '+score.detail.meditationScore+'% · Parole '+
+      score.detail.paroleScore+'% · Évangélisation '+score.detail.evangScore+'% · Régularité '+score.detail.regulariteScore+'%</div></div></div>';
+}
+
+/* ---------- Insights comparatifs (tendances vs période précédente) ---------- */
+function addTrendInsights(recos, a, aPrev, prevTxt){
+  if(!aPrev || aPrev.joursEnregistres===0) return;
+  function trend(label, cur, prev){
+    var d = pctDelta(cur, prev);
+    if(d===null) return;
+    if(d<=-15) recos.unshift({type:"attention", text:"Votre "+label+" a diminué de "+Math.abs(Math.round(d))+"% par rapport à "+prevTxt+"."});
+    else if(d>=20) recos.unshift({type:"positif", text:"Votre "+label+" a progressé de "+Math.round(d)+"% par rapport à "+prevTxt+"."});
+  }
+  trend("temps de prière personnelle", a.moyennes.priereMoi, aPrev.moyennes.priereMoi);
+  trend("temps de prière pour les autres", a.moyennes.priereAutres, aPrev.moyennes.priereAutres);
+  trend("temps de méditation", a.moyennes.meditation, aPrev.moyennes.meditation);
+  trend("régularité de saisie", a.tauxRegularite*100, aPrev.tauxRegularite*100);
+  var evangD = pctDelta(a.totaux.evangelisationPersonnes, aPrev.totaux.evangelisationPersonnes);
+  if(evangD!==null && evangD<=-25) recos.unshift({type:"attention", text:"Votre évangélisation a diminué de "+Math.abs(Math.round(evangD))+"% par rapport à "+prevTxt+"."});
+  else if(evangD!==null && evangD>=30) recos.unshift({type:"positif", text:"Votre évangélisation a progressé de "+Math.round(evangD)+"% par rapport à "+prevTxt+"."});
+}
+function kpiHTML(label, value, subPlain, deltaRawHtml){
+  return '<div class="kpi"><div class="label">'+esc(label)+'</div><div class="value">'+esc(value)+'</div>' +
+    (subPlain?'<div class="sub">'+esc(subPlain)+(deltaRawHtml||"")+'</div>':(deltaRawHtml?'<div class="sub">'+deltaRawHtml+'</div>':'')) +
+  '</div>';
+}
+function kpiGroup(title, kpisArr){
+  return '<div class="section-label">'+esc(title)+'</div><div class="kpi-grid">'+kpisArr.join("")+'</div>';
+}
+function pctDelta(cur, prev){ if(!prev || prev<=0) return null; return ((cur-prev)/prev)*100; }
+function deltaTagHTML(cur, prev){
+  var d=pctDelta(cur, prev); if(d===null) return "";
+  var up = d>=0; var color = up?"var(--grace)":"var(--alerte)"; var arrow = up?"▲":"▼";
+  return ' <span style="color:'+color+';font-weight:700;">'+arrow+' '+Math.abs(Math.round(d))+'% vs préc.</span>';
+}
+var RECO_STYLE={positif:{c:"var(--grace)",l:"Encouragement"}, conseil:{c:"var(--aube)",l:"Conseil"}, attention:{c:"var(--alerte)",l:"Attention"}};
+function recosHTML(recos){
+  return recos.map(function(r){
+    var st=RECO_STYLE[r.type]||RECO_STYLE.conseil;
+    return '<div class="reco"><span class="reco-badge" style="background:'+st.c+'1a;color:'+st.c+';">'+st.l+'</span><span class="reco-text">'+esc(r.text)+'</span></div>';
+  }).join("");
+}
+function barChartSVG(values, color, height){
+  height = height||90;
+  var max = Math.max.apply(null, values.concat([1]));
+  var barW = 300/values.length;
+  var bars = values.map(function(v,i){
+    var h=(v/max)*80; var x=i*barW+barW*0.15; var bw=Math.max(barW*0.7,1); var y=90-h;
+    return '<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+h.toFixed(1)+'" rx="1.5" fill="'+color+'"></rect>';
+  }).join("");
+  return '<svg viewBox="0 0 300 100" preserveAspectRatio="none" style="width:100%;height:'+height+'px;display:block;">'+bars+
+    '<line x1="0" y1="90" x2="300" y2="90" stroke="#E1DFD6" stroke-width="1"/></svg>';
+}
+function buildBilanSections(a, aPrev, objectifs, isAnnual, score){
+  aPrev = aPrev || {totaux:{}, moyennes:{}};
+  function dt(cur, key, isTotal){
+    var prevVal = isTotal ? (aPrev.totaux[key]||0) : (aPrev.moyennes[key]||0);
+    return isAnnual ? "" : deltaTagHTML(cur, prevVal);
+  }
+  var retraiteObjLabel = objectifs.retraitesParMois ?
+    ("Objectif : "+objectifs.retraitesParMois+"/mois"+(isAnnual?" ("+(objectifs.retraitesParMois*12)+"/an)":"")) : null;
+
+  var html = "";
+  if(score) html += scoreBlockHTML(score);
+  html += kpiGroup("Vue d'ensemble", [
+    kpiHTML("Jours enregistrés", a.joursEnregistres+"/"+a.totalJoursPeriode, Math.round(a.tauxRegularite*100)+"%"+(isAnnual?" de l'année":" du mois")),
+    kpiHTML("Sommeil moyen", formatMin(a.moyennes.sommeil), "par jour", dt(a.moyennes.sommeil,"sommeil")),
+    kpiHTML("Lecture biblique", formatMin(a.totaux.lecture), a.totaux.chapitres+" chapitre(s)", dt(a.totaux.chapitres,"chapitres",true)),
+    kpiHTML("Méditation", formatMin(a.totaux.meditation), a.totaux.meditationJours+" jour(s)"),
+    kpiHTML("Lecture livre chrétien", formatMin(a.totaux.livre)),
+    kpiHTML("Temps d'étude", formatMin(a.totaux.etude))
+  ]);
+  html += kpiGroup("Détail de la Prière Seul (PS)", [
+    kpiHTML("PS/SM — Soi-même", formatMin(a.totaux.priereSeulSM), a.joursPriere.sm+"/"+a.totalJoursPeriode+" j.", dt(a.totaux.priereSeulSM,"priereSeulSM",true)),
+    kpiHTML("PS/FD — Faiseur de Disciple", formatMin(a.totaux.priereSeulFD), a.joursPriere.fd+"/"+a.totalJoursPeriode+" j.", dt(a.totaux.priereSeulFD,"priereSeulFD",true)),
+    kpiHTML("PS/AU — Autres", formatMin(a.totaux.priereSeulAU), a.joursPriere.au+"/"+a.totalJoursPeriode+" j.", dt(a.totaux.priereSeulAU,"priereSeulAU",true)),
+    kpiHTML("PS/FM — Famille", formatMin(a.totaux.priereSeulFM), a.joursPriere.fm+"/"+a.totalJoursPeriode+" j.", dt(a.totaux.priereSeulFM,"priereSeulFM",true)),
+    kpiHTML("Total Prière Seul", formatMin(a.totaux.totalPriereSeul)),
+    kpiHTML("Temps moyen de Prière Seul", formatMin(a.moyennes.priereSeul), "par jour", dt(a.moyennes.priereSeul,"priereSeul")),
+    kpiHTML("Prière en groupe (PG)", formatMin(a.totaux.priereGroupe), a.joursPriere.groupe+"/"+a.totalJoursPeriode+" j.", dt(a.totaux.priereGroupe,"priereGroupe",true))
+  ]);
+  html += kpiGroup("Ratios & régularité", [
+    kpiHTML("Jours prière personnelle", Math.round(a.ratios.priereMoi*100)+"%", a.joursPriere.moi+"/"+a.totalJoursPeriode+" j."),
+    kpiHTML("Jours prière pour les autres", Math.round(a.ratios.priereAutres*100)+"%", a.joursPriere.autres+"/"+a.totalJoursPeriode+" j."),
+    kpiHTML("Jours d'évangélisation", Math.round(a.ratios.evangelisation*100)+"%", a.joursPriere.evangelisation+"/"+a.totalJoursPeriode+" j."),
+    kpiHTML("Jours de discipline spirituelle", Math.round(a.ratios.discipline*100)+"%", a.joursPriere.discipline+"/"+a.totalJoursPeriode+" j.")
+  ]);
+  html += kpiGroup("Jeûne", [
+    kpiHTML("Jeûne complet", a.totaux.jeuneComplet+" j."),
+    kpiHTML("Jeûne partiel", a.totaux.jeunePartiel+" j."),
+    kpiHTML("Total jours de jeûne", a.totaux.jeuneTotal+" j.")
+  ]);
+  html += kpiGroup("Retraite spirituelle", [
+    kpiHTML("Retraites effectuées", a.totaux.retraiteJours, retraiteObjLabel),
+    kpiHTML("Temps total de retraite", formatMin(a.totaux.retraiteMin))
+  ]);
+  html += kpiGroup("Évangélisation", [
+    kpiHTML("Jours d'évangélisation", a.totaux.evangelisationJours+"/"+a.totalJoursPeriode+" j."),
+    kpiHTML("Personnes évangélisées", a.totaux.evangelisationPersonnes),
+    kpiHTML("Temps d'évangélisation", formatMin(a.totaux.evangelisationMin)),
+    kpiHTML("Personnelle / Groupe / Publique", a.totaux.evangelisationPersonnel+" / "+a.totaux.evangelisationGroupe+" / "+a.totaux.evangelisationPublic, "jours par type")
+  ]);
+  return html;
+}
+
+/* ---------- Tableau détaillé jour par jour (export Excel/CSV) ---------- */
+var CSV_COLS = [
+  {h:"Date", t:"text"},
+  {h:"PM", t:"hour"}, {h:"PA", t:"hour"},
+  {h:"PG", t:"hour"},
+  {h:"Méditation", t:"hour"}, {h:"Chps", t:"num"}, {h:"LB", t:"hour"},
+  {h:"Étude", t:"hour"},
+  {h:"Jeûne", t:"text"}, {h:"Type de jeûne", t:"text"},
+  {h:"Retraite spirituelle", t:"text"},
+  {h:"pers EVG", t:"num"}, {h:"EVG-type", t:"text"},
+  {h:"Sommeil", t:"hour"}
+];
+function buildMonthlyTable(ym){
+  var total = daysInMonth(ym);
+  var rows = [CSV_COLS.map(function(c){ return c.h; })];
+  for(var d=1; d<=total; d++){
+    var ds = ym+"-"+pad(d);
+    var e = getEntry(ds) || defaultEntry(ds);
+    var groupeMin = totalGroupe(e);
+    var sommeilMin = (e.sommeil||[]).reduce(function(s,x){ return s+sommeilDuree(x); },0);
+    var jeuneAbbrev = (e.jeune&&e.jeune.actif) ? (e.jeune.type==="Complet"?"JC":(e.jeune.type==="Partiel"?"JP":"")) : "";
+    var pa = priereAutresDuJour(e);
+    var evgPersonnes = (e.evangelisation&&e.evangelisation.personnes)||0;
+    rows.push([
+      ds,
+      (e.priereMin||0)>0 ? e.priereMin : "", pa>0 ? pa : "", groupeMin>0 ? groupeMin : "",
+      (e.meditationMin||0)>0 ? e.meditationMin : "", (e.chapitresLus||0)>0 ? e.chapitresLus : "", (e.lectureMin||0)>0 ? e.lectureMin : "",
+      (e.etudeMin||0)>0 ? e.etudeMin : "",
+      (e.jeune&&e.jeune.actif)?"Oui":"", jeuneAbbrev,
+      (e.retraite&&e.retraite.actif)?"Oui":"",
+      evgPersonnes>0 ? evgPersonnes : "", (e.evangelisation&&e.evangelisation.type)||"",
+      sommeilMin>0 ? sommeilMin : ""
+    ]);
+  }
+  var totalsRow = CSV_COLS.map(function(c,i){
+    if(i===0) return "TOTAL DU MOIS";
+    if(c.t!=="num" && c.t!=="hour") return "";
+    return rows.slice(1).reduce(function(s,r){ return s+(Number(r[i])||0); }, 0);
+  });
+  rows.push(totalsRow);
+  return rows;
+}
+function xmlEscape(s){
+  return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&apos;");
+}
+/* Génère un vrai classeur Excel (format Excel XML Spreadsheet / SpreadsheetML).
+   Contrairement à un simple fichier .csv, ce format n'a aucune ambiguïté de séparateur
+   selon la langue/région d'Excel : il s'ouvre toujours directement en tableau, avec
+   les nombres reconnus comme nombres et l'en-tête mis en forme. */
+function buildExcelXML(rows, sheetName){
+  var colDefs = CSV_COLS.map(function(c){ return c.t; });
+  var out = [];
+  out.push('<?xml version="1.0" encoding="UTF-8"?>');
+  out.push('<?mso-application progid="Excel.Sheet"?>');
+  out.push('<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" ' +
+    'xmlns:o="urn:schemas-microsoft-com:office:office" ' +
+    'xmlns:x="urn:schemas-microsoft-com:office:excel" ' +
+    'xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">');
+  out.push('<Styles>' +
+    '<Style ss:ID="header"><Font ss:Bold="1" ss:Color="#2A2A2A"/><Interior ss:Color="#F1E4C8" ss:Pattern="Solid"/></Style>' +
+    '<Style ss:ID="total"><Font ss:Bold="1"/><Borders><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/></Borders></Style>' +
+    '</Styles>');
+  out.push('<Worksheet ss:Name="'+xmlEscape(sheetName)+'"><Table>');
+  CSV_COLS.forEach(function(c){
+    var w = Math.max(48, c.h.length*7.2 + 22);
+    out.push('<Column ss:AutoFitWidth="1" ss:Width="'+Math.round(w)+'"/>');
+  });
+  rows.forEach(function(row, ri){
+    var isHeader = ri===0;
+    var isTotal = ri===rows.length-1;
+    var styleAttr = isHeader ? ' ss:StyleID="header"' : (isTotal ? ' ss:StyleID="total"' : '');
+    var cells = row.map(function(val, ci){
+      if(isHeader) return '<Cell><Data ss:Type="String">'+xmlEscape(val)+'</Data></Cell>';
+      var t = colDefs[ci];
+      if(val==="" || val===null || val===undefined) return '<Cell></Cell>';
+      if(t==="num"){
+        var n = Number(val); if(isNaN(n)) n=0;
+        return '<Cell><Data ss:Type="Number">'+n+'</Data></Cell>';
+      }
+      if(t==="hour"){
+        return '<Cell><Data ss:Type="String">'+xmlEscape(formatHeureMin(val))+'</Data></Cell>';
+      }
+      return '<Cell><Data ss:Type="String">'+xmlEscape(val)+'</Data></Cell>';
+    }).join("");
+    out.push('<Row'+styleAttr+'>'+cells+'</Row>');
+  });
+  out.push('</Table>' +
+    '<WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel"><FreezePanes/><FrozenNoSplit/><SplitHorizontal>1</SplitHorizontal><TopRowBottomPane>1</TopRowBottomPane><ActivePane>2</ActivePane></WorksheetOptions>' +
+    '</Worksheet></Workbook>');
+  return out.join("");
+}
+function exportMonthExcel(ym){
+  try{
+    var rows = buildMonthlyTable(ym);
+    var xml = buildExcelXML(rows, ym);
+    var blob = new Blob([xml], {type:"application/vnd.ms-excel;charset=utf-8;"});
+    var url = URL.createObjectURL(blob);
+    var a=document.createElement("a"); a.href=url; a.download="carnet-spirituel-detail-"+ym+".xls";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+    showToast("Tableau détaillé exporté ✅ (ouvre-le avec Excel)", "success");
+  }catch(e){ showToast("Échec de l'export du tableau.", "error"); }
+}
+
+/* =========================================================
+   COMPTE RENDU MENSUEL (Excel formel, type rapport disciple)
+   Génère un classeur Excel (SpreadsheetML) avec une feuille "CR <MOIS>" :
+   zone d'identité, dons au Seigneur, tableau journalier et bilan mensuel.
+========================================================= */
+var MOIS_FR_MAJ = ["JANVIER","FEVRIER","MARS","AVRIL","MAI","JUIN","JUILLET","AOUT","SEPTEMBRE","OCTOBRE","NOVEMBRE","DECEMBRE"];
+var CR_COLS = 15; /* A..O */
+function crRsText(e){
+  if(!e.retraite || !e.retraite.actif) return "";
+  return "Oui — "+formatHeureMin(e.retraite.minutes||0);
+}
+function crJeuneText(e){
+  if(!e.jeune || !e.jeune.actif) return "";
+  return e.jeune.type || "Actif";
+}
+function crHm(min){ return (min>0) ? formatHeureMin(min) : ""; }
+function crNum(n){ return (n>0) ? n : ""; }
+function crCell(value, opts){
+  opts = opts || {};
+  var type = opts.type || (typeof value==="number" ? "Number" : "String");
+  var styleAttr = opts.style ? ' ss:StyleID="'+opts.style+'"' : "";
+  var mergeAcross = opts.mergeAcross ? ' ss:MergeAcross="'+opts.mergeAcross+'"' : "";
+  var mergeDown = opts.mergeDown ? ' ss:MergeDown="'+opts.mergeDown+'"' : "";
+  var v = (value===null || value===undefined || value==="") ? "" : (type==="Number" ? (Number(value)||0) : xmlEscape(value));
+  if(v==="" ) return '<Cell'+styleAttr+mergeAcross+mergeDown+'></Cell>';
+  return '<Cell'+styleAttr+mergeAcross+mergeDown+'><Data ss:Type="'+type+'">'+v+'</Data></Cell>';
+}
+function crRow(cells, opts){
+  opts = opts || {};
+  var h = opts.height ? ' ss:Height="'+opts.height+'"' : "";
+  return '<Row'+h+'>'+cells.join("")+'</Row>';
+}
+function crTitleRow(text, height){
+  return crRow([crCell(text, {style:"crTitle", mergeAcross:CR_COLS-1})], {height:height||26});
+}
+function crSectionRow(text, height){
+  return crRow([crCell(text, {style:"crSection", mergeAcross:CR_COLS-1})], {height:height||22});
+}
+function crLabelValueRow(label, value, labelSpan, valueSpan){
+  labelSpan = labelSpan||2; valueSpan = valueSpan||(CR_COLS-1-labelSpan);
+  return crRow([
+    crCell(label, {style:"crLabel", mergeAcross:labelSpan-1}),
+    crCell(value, {style:"crValue", type:"String", mergeAcross:valueSpan})
+  ], {height:19});
+}
+function crPairRow(pairs){
+  /* pairs: [{label, value}] réparties sur la largeur de la ligne, 2 cellules (label+valeur) par paire */
+  var cells = [];
+  pairs.forEach(function(p){
+    cells.push(crCell(p.label, {style:"crLabelSm"}));
+    cells.push(crCell(p.value, {style:"crValueSm", type:"String"}));
+  });
+  return crRow(cells, {height:19});
+}
+function buildCompteRenduXML(ym){
+  var pr = state.profile || defaultProfileShape();
+  var don = getDon(ym);
+  var entries = loadMonthEntries(ym);
+  var byDate = {}; entries.forEach(function(e){ byDate[e.date]=e; });
+  var nbJours = daysInMonth(ym);
+  var mm = Number(ym.split("-")[1]), yyyy = Number(ym.split("-")[0]);
+  var moisTxt = MOIS_FR[mm-1].charAt(0).toUpperCase()+MOIS_FR[mm-1].slice(1);
+  var nomComplet = ((pr.prenom||"")+" "+(pr.nom||"")).trim();
+
+  var rows = [];
+  rows.push(crTitleRow("RAPPORT DU MOIS DE "+MOIS_FR_MAJ[mm-1]+" "+yyyy, 30));
+  rows.push(crRow([crCell("")], {height:6}));
+  rows.push(crLabelValueRow("NOM ET PRENOMS :", nomComplet || "—"));
+  rows.push(crLabelValueRow("FAISEUR DE DISCIPLE :", pr.faiseurDeDisciple || "—"));
+  rows.push(crLabelValueRow("ASSEMBLÉE CHEZ :", pr.assemblee || "—"));
+  rows.push(crLabelValueRow("MOIS DU RAPPORT :", moisTxt+" "+yyyy));
+  rows.push(crRow([crCell("")], {height:6}));
+
+  rows.push(crSectionRow("DONS AU SEIGNEUR"));
+  function fondTxt(f){ return (f.montant||0)+" FCFA ("+(f.pourcentage||0)+"%)"; }
+  rows.push(crPairRow([
+    {label:"DÎME :", value:fondTxt(don.dime)},
+    {label:"OFFRANDE :", value:fondTxt(don.offrande)},
+    {label:"FMI :", value:fondTxt(don.fmi)},
+    {label:"FMN :", value:fondTxt(don.fmn)}
+  ]));
+  rows.push(crPairRow([
+    {label:"FE :", value:fondTxt(don.fe)},
+    {label:"FG :", value:fondTxt(don.fg)},
+    {label:"RTVC :", value:fondTxt(don.rtvc)},
+    {label:"JCMCI :", value:fondTxt(don.jmci)}
+  ]));
+  rows.push(crRow([crCell("")], {height:6}));
+
+  rows.push(crSectionRow("SUIVI JOURNALIER"));
+  var headers = ["Jour","PS/SM","PS/FD","PS/AU","PS/FM","PG","RDQD","LB","TPS/LB","RS","Jeûne","EVG","Étude","Sommeil","Total spirituel"];
+  rows.push(crRow(headers.map(function(h){ return crCell(h, {style:"crTh"}); }), {height:32}));
+
+  var totalsAcc = {sm:0,fd:0,au:0,fm:0,pg:0,rdqd:0,lb:0,tpslb:0,rs:0,evg:0,etude:0,sommeil:0,total:0};
+  for(var d=1; d<=nbJours; d++){
+    var ds = ym+"-"+pad(d);
+    var e = byDate[ds] || defaultEntry(ds);
+    var ps = e.priereSeul || {sm:0,fd:0,au:0,fm:0};
+    var pg = totalGroupe(e);
+    var rsMin = (e.retraite&&e.retraite.actif) ? (e.retraite.minutes||0) : 0;
+    var sommeilMin = (e.sommeil||[]).reduce(function(s,x){ return s+sommeilDuree(x); },0);
+    var totalJour = totalDuJour(e);
+    totalsAcc.sm+=ps.sm||0; totalsAcc.fd+=ps.fd||0; totalsAcc.au+=ps.au||0; totalsAcc.fm+=ps.fm||0;
+    totalsAcc.pg+=pg; totalsAcc.rdqd+=e.meditationMin||0; totalsAcc.lb+=e.chapitresLus||0; totalsAcc.tpslb+=e.lectureMin||0;
+    totalsAcc.rs+=rsMin; totalsAcc.evg+=(e.evangelisation&&e.evangelisation.personnes)||0;
+    totalsAcc.etude+=e.etudeMin||0; totalsAcc.sommeil+=sommeilMin; totalsAcc.total+=totalJour;
+    rows.push(crRow([
+      crCell(d, {style:"crCell", type:"Number"}),
+      crCell(crHm(ps.sm||0), {style:"crCell"}),
+      crCell(crHm(ps.fd||0), {style:"crCell"}),
+      crCell(crHm(ps.au||0), {style:"crCell"}),
+      crCell(crHm(ps.fm||0), {style:"crCell"}),
+      crCell(crHm(pg), {style:"crCell"}),
+      crCell(crHm(e.meditationMin||0), {style:"crCell"}),
+      crCell(crNum(e.chapitresLus||0), {style:"crCell", type:"Number"}),
+      crCell(crHm(e.lectureMin||0), {style:"crCell"}),
+      crCell(crRsText(e), {style:"crCell"}),
+      crCell(crJeuneText(e), {style:"crCell"}),
+      crCell(crNum((e.evangelisation&&e.evangelisation.personnes)||0), {style:"crCell", type:"Number"}),
+      crCell(crHm(e.etudeMin||0), {style:"crCell"}),
+      crCell(crHm(sommeilMin), {style:"crCell"}),
+      crCell(crHm(totalJour), {style:"crCell"})
+    ], {height:19}));
+  }
+  rows.push(crRow([
+    crCell("TOTAL", {style:"crTotal"}),
+    crCell(formatHeureMin(totalsAcc.sm), {style:"crTotal"}),
+    crCell(formatHeureMin(totalsAcc.fd), {style:"crTotal"}),
+    crCell(formatHeureMin(totalsAcc.au), {style:"crTotal"}),
+    crCell(formatHeureMin(totalsAcc.fm), {style:"crTotal"}),
+    crCell(formatHeureMin(totalsAcc.pg), {style:"crTotal"}),
+    crCell(formatHeureMin(totalsAcc.rdqd), {style:"crTotal"}),
+    crCell(totalsAcc.lb, {style:"crTotal", type:"Number"}),
+    crCell(formatHeureMin(totalsAcc.tpslb), {style:"crTotal"}),
+    crCell(formatHeureMin(totalsAcc.rs), {style:"crTotal"}),
+    crCell("", {style:"crTotal"}),
+    crCell(totalsAcc.evg, {style:"crTotal", type:"Number"}),
+    crCell(formatHeureMin(totalsAcc.etude), {style:"crTotal"}),
+    crCell(formatHeureMin(totalsAcc.sommeil), {style:"crTotal"}),
+    crCell(formatHeureMin(totalsAcc.total), {style:"crTotal"})
+  ], {height:20}));
+  rows.push(crRow([crCell("")], {height:8}));
+
+  /* ---- BILAN MENSUEL ---- */
+  var a = analyserPeriode(entries, nbJours, "ce mois-ci");
+  rows.push(crSectionRow("BILAN MENSUEL", 26));
+  rows.push(crRow([crCell("Prière", {style:"crSubHead", mergeAcross:CR_COLS-1})], {height:19}));
+  rows.push(crLabelValueRow("Total Prière Seul (PS/SM+FD+AU+FM) :", formatHeureMin(a.totaux.totalPriereSeul)));
+  rows.push(crPairRow([
+    {label:"Jours PS/SM :", value:a.joursPriere.sm+" j."},
+    {label:"Jours PS/FD :", value:a.joursPriere.fd+" j."},
+    {label:"Jours PS/AU :", value:a.joursPriere.au+" j."},
+    {label:"Jours PS/FM :", value:a.joursPriere.fm+" j."}
+  ]));
+  rows.push(crLabelValueRow("Prière en groupe (PG) :", formatHeureMin(a.totaux.priereGroupe)+" — "+a.joursPriere.groupe+" jour(s)"));
+
+  rows.push(crRow([crCell("Méditation (RDQD)", {style:"crSubHead", mergeAcross:CR_COLS-1})], {height:19}));
+  rows.push(crPairRow([
+    {label:"Nombre total de jours :", value:a.totaux.meditationJours+" j."},
+    {label:"Total cumulé :", value:formatHeureMin(a.totaux.meditation)}
+  ]));
+
+  rows.push(crRow([crCell("Jeûne", {style:"crSubHead", mergeAcross:CR_COLS-1})], {height:19}));
+  rows.push(crPairRow([
+    {label:"Jeûnes complets :", value:a.totaux.jeuneComplet+" j."},
+    {label:"Jeûnes partiels :", value:a.totaux.jeunePartiel+" j."}
+  ]));
+
+  rows.push(crRow([crCell("Retraite", {style:"crSubHead", mergeAcross:CR_COLS-1})], {height:19}));
+  rows.push(crPairRow([
+    {label:"Nombre total :", value:a.totaux.retraiteJours+" j."},
+    {label:"Temps total :", value:formatHeureMin(a.totaux.retraiteMin)}
+  ]));
+
+  rows.push(crRow([crCell("Évangélisation", {style:"crSubHead", mergeAcross:CR_COLS-1})], {height:19}));
+  rows.push(crPairRow([
+    {label:"Personnes évangélisées :", value:a.totaux.evangelisationPersonnes},
+    {label:"Jours d'évangélisation :", value:a.totaux.evangelisationJours+" j."}
+  ]));
+  rows.push(crLabelValueRow("Temps total d'évangélisation :", formatHeureMin(a.totaux.evangelisationMin)));
+
+  rows.push(crRow([crCell("Besoins de prière (3 sujets du mois)", {style:"crSubHead", mergeAcross:CR_COLS-1})], {height:19}));
+  don.besoinsPriere.forEach(function(b, i){
+    rows.push(crLabelValueRow((i+1)+".", b || "—", 1, CR_COLS-2));
+  });
+  rows.push(crRow([crCell("")], {height:8}));
+  rows.push(crRow([crCell("Rapport généré le "+dateLisible(todayISO()), {style:"crFooter", mergeAcross:CR_COLS-1})], {height:18}));
+
+  var out = [];
+  out.push('<?xml version="1.0" encoding="UTF-8"?>');
+  out.push('<?mso-application progid="Excel.Sheet"?>');
+  out.push('<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" ' +
+    'xmlns:o="urn:schemas-microsoft-com:office:office" ' +
+    'xmlns:x="urn:schemas-microsoft-com:office:excel" ' +
+    'xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">');
+  out.push('<Styles>' +
+    '<Style ss:ID="crTitle"><Font ss:FontName="Times New Roman" ss:Size="16" ss:Bold="1"/>' +
+      '<Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/>' +
+      '<Interior ss:Color="#F1E4C8" ss:Pattern="Solid"/>' +
+      '<Borders><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="3"/>' +
+      '<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="3"/>' +
+      '<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="3"/>' +
+      '<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="3"/></Borders></Style>' +
+    '<Style ss:ID="crSection"><Font ss:FontName="Times New Roman" ss:Size="13" ss:Bold="1" ss:Color="#FFFFFF"/>' +
+      '<Alignment ss:Horizontal="Center" ss:Vertical="Center"/>' +
+      '<Interior ss:Color="#9C6F1F" ss:Pattern="Solid"/>' +
+      '<Borders><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="2"/>' +
+      '<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="2"/>' +
+      '<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="2"/>' +
+      '<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="2"/></Borders></Style>' +
+    '<Style ss:ID="crSubHead"><Font ss:FontName="Times New Roman" ss:Size="12" ss:Bold="1"/>' +
+      '<Alignment ss:Horizontal="Left" ss:Vertical="Center"/>' +
+      '<Interior ss:Color="#F1E4C8" ss:Pattern="Solid"/>' +
+      '<Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/></Borders></Style>' +
+    '<Style ss:ID="crLabel"><Font ss:FontName="Times New Roman" ss:Size="11" ss:Bold="1"/>' +
+      '<Alignment ss:Horizontal="Right" ss:Vertical="Center"/></Style>' +
+    '<Style ss:ID="crValue"><Font ss:FontName="Times New Roman" ss:Size="11" ss:Bold="1"/>' +
+      '<Alignment ss:Horizontal="Left" ss:Vertical="Center"/>' +
+      '<Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#C9922F"/></Borders></Style>' +
+    '<Style ss:ID="crLabelSm"><Font ss:FontName="Times New Roman" ss:Size="10.5" ss:Bold="1"/>' +
+      '<Alignment ss:Horizontal="Right" ss:Vertical="Center"/></Style>' +
+    '<Style ss:ID="crValueSm"><Font ss:FontName="Times New Roman" ss:Size="10.5"/>' +
+      '<Alignment ss:Horizontal="Left" ss:Vertical="Center"/></Style>' +
+    '<Style ss:ID="crTh"><Font ss:FontName="Times New Roman" ss:Size="10.5" ss:Bold="1"/>' +
+      '<Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/>' +
+      '<Interior ss:Color="#F1E4C8" ss:Pattern="Solid"/>' +
+      '<Borders><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="2"/>' +
+      '<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="2"/>' +
+      '<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>' +
+      '<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/></Borders></Style>' +
+    '<Style ss:ID="crCell"><Font ss:FontName="Times New Roman" ss:Size="10.5"/>' +
+      '<Alignment ss:Horizontal="Center" ss:Vertical="Center"/>' +
+      '<Borders><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/>' +
+      '<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>' +
+      '<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>' +
+      '<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/></Borders></Style>' +
+    '<Style ss:ID="crTotal"><Font ss:FontName="Times New Roman" ss:Size="10.5" ss:Bold="1"/>' +
+      '<Alignment ss:Horizontal="Center" ss:Vertical="Center"/>' +
+      '<Interior ss:Color="#F1E4C8" ss:Pattern="Solid"/>' +
+      '<Borders><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="2"/>' +
+      '<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="2"/>' +
+      '<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>' +
+      '<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/></Borders></Style>' +
+    '<Style ss:ID="crFooter"><Font ss:FontName="Times New Roman" ss:Size="10" ss:Italic="1"/>' +
+      '<Alignment ss:Horizontal="Right" ss:Vertical="Center"/></Style>' +
+    '</Styles>');
+  var sheetName = "CR "+MOIS_FR_MAJ[mm-1];
+  out.push('<Worksheet ss:Name="'+xmlEscape(sheetName)+'"><Table>');
+  var crColHeaders = ["Jour","PS/SM","PS/FD","PS/AU","PS/FM","PG","RDQD","LB","TPS/LB","RS","Jeûne","EVG","Étude","Sommeil","Total spirituel"];
+  var colWidths = crColHeaders.map(function(h){ return Math.max(42, h.length*7.5 + 24); });
+  colWidths[9] = Math.max(colWidths[9], 95); /* RS : contient "Oui — 01h30min" */
+  colWidths.forEach(function(w){ out.push('<Column ss:AutoFitWidth="1" ss:Width="'+Math.round(w)+'"/>'); });
+  rows.forEach(function(r){ out.push(r); });
+  out.push('</Table>' +
+    '<WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel"><PageSetup><Layout x:Orientation="Landscape"/></PageSetup></WorksheetOptions>' +
+    '</Worksheet></Workbook>');
+  return out.join("");
+}
+function exportCompteRenduExcel(ym){
+  try{
+    var xml = buildCompteRenduXML(ym);
+    var blob = new Blob([xml], {type:"application/vnd.ms-excel;charset=utf-8;"});
+    var url = URL.createObjectURL(blob);
+    var a=document.createElement("a"); a.href=url;
+    a.download = "compte-rendu-"+ym+".xls";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+    showToast("Compte rendu du mois exporté ✅ (ouvre-le avec Excel)", "success");
+  }catch(err){ showToast("Échec de l'export du compte rendu.", "error"); }
+}
+
+/* ---------- Bilan mensuel ---------- */
+function bilanHTML(){
+  if(!state._bilanMonth) state._bilanMonth = currentYearMonth();
+  var ym = state._bilanMonth;
+  var entries = loadMonthEntries(ym);
+  var a = analyserPeriode(entries, daysInMonth(ym), "ce mois-ci");
+  var prevYm = prevYearMonth(ym);
+  var aPrev = analyserPeriode(loadMonthEntries(prevYm), daysInMonth(prevYm), "le mois précédent");
+  var p = ym.split("-").map(Number), y=p[0], m=p[1];
+  var name = state.profile.prenom ? (state.profile.prenom+" "+state.profile.nom) : state.profile.nom;
+  var score = computeSpiritualScore(a, state.profile.objectifs);
+  addTrendInsights(a.recos, a, aPrev, "le mois précédent");
+
+  var dailyMap={}; entries.forEach(function(e){ dailyMap[e.date]=totalDuJour(e); });
+  var dailyValues=[]; for(var d=1; d<=a.totalJoursPeriode; d++){ dailyValues.push(dailyMap[ym+"-"+pad(d)]||0); }
+
+  var people = a.personnesTriees.length ? (
+    '<div class="section-label">Personnes pour qui vous avez prié</div><div class="people-tags">' +
+    a.personnesTriees.map(function(pp){ return '<span class="people-tag">'+esc(pp.nom)+' — '+pp.jours+'j · '+formatMin(pp.minutes)+'</span>'; }).join("") +
+    '</div>'
+  ) : "";
+
+  return '' +
+  '<div class="bilan-toolbar no-print">' +
+    '<div class="bilan-toolbar-title"><span>📊</span>Bilan mensuel</div>' +
+    '<div style="display:flex;gap:8px;align-items:center;">' +
+      '<input type="month" id="monthPicker" value="'+ym+'">' +
+      '<button class="btn-add" id="excelBtnMois" style="border-color:var(--grace);color:var(--grace);">📥 Excel (Compte Rendu)</button>' +
+      '<button class="btn-add" id="printBtnMois" style="border-color:var(--nuit);color:var(--nuit);">🖨 Exporter en PDF</button>' +
+    '</div></div>' +
+  donBlockHTML(ym) +
+  '<div class="card" id="bilan-print-area">' +
+    '<div class="bilan-header">' +
+      '<div class="bilan-kicker">Bilan spirituel</div>' +
+      '<h1 class="bilan-name serif">'+esc(name)+'</h1>' +
+      '<div class="bilan-date">'+MOIS_FR[m-1].charAt(0).toUpperCase()+MOIS_FR[m-1].slice(1)+' '+y+' — généré le '+dateLisible(todayISO())+'</div>' +
+    '</div>' +
+    buildBilanSections(a, aPrev, state.profile.objectifs, false, score) +
+    donDieuSummaryHTML(ym) +
+    people +
+    '<div class="section-label">Évolution quotidienne</div>' +
+    '<div class="chart-wrap">'+barChartSVG(dailyValues, "#C9922F", 90)+'<div class="chart-caption">Temps spirituel total par jour (minutes) — jour 1 à '+a.totalJoursPeriode+'</div></div>' +
+    '<div class="section-label">Constance quotidienne</div>' +
+    heatmapHTML(ym, dailyMap, a.totalJoursPeriode) +
+    '<div class="print-hide"><div class="section-label">Analyse & recommandations</div>' +
+    recosHTML(a.recos) + '</div>' +
+  '</div>';
+}
+function heatmapHTML(ym, dailyMap, totalJours){
+  var p = ym.split("-").map(Number);
+  var firstDow = new Date(p[0], p[1]-1, 1).getDay();
+  var values = Object.keys(dailyMap).map(function(k){ return dailyMap[k]; });
+  var max = Math.max.apply(null, values.concat([1]));
+  var cells = "";
+  for(var i=0;i<firstDow;i++){ cells += '<div class="heat-cell heat-empty"></div>'; }
+  for(var d=1; d<=totalJours; d++){
+    var ds = ym+"-"+pad(d);
+    var v = dailyMap[ds]||0;
+    var intensity = max>0 ? v/max : 0;
+    var bg = v===0 ? "var(--ligne)" : "rgba(201,146,47,"+(0.18+intensity*0.72).toFixed(2)+")";
+    cells += '<div class="heat-cell" style="background:'+bg+';" title="'+ds+' — '+formatMin(v)+'">'+d+'</div>';
+  }
+  return '<div class="heat-grid">'+cells+'</div>';
+}
+function triggerPrint(){
+  try{
+    if(typeof window.print==="function"){ window.print(); }
+    else { showToast("Impression indisponible sur ce navigateur. Utilisez le menu de partage de votre navigateur pour exporter en PDF.", "error"); }
+  }catch(err){ showToast("Impression indisponible sur ce navigateur. Utilisez le menu de partage de votre navigateur pour exporter en PDF.", "error"); }
+}
+function bindBilanToolbar(){
+  var mp=document.getElementById("monthPicker");
+  if(mp) mp.addEventListener("change", function(){ state._bilanMonth=mp.value; render(); });
+  var eb=document.getElementById("excelBtnMois");
+  if(eb) eb.addEventListener("click", function(){ exportCompteRenduExcel(state._bilanMonth); });
+}
+
+/* ---------- Bilan annuel ---------- */
+function annuelHTML(){
+  if(!state._bilanYear) state._bilanYear = new Date().getFullYear();
+  var year = state._bilanYear;
+  var monthlyEntries=[], monthlyTotals=[];
+  for(var mm=1; mm<=12; mm++){
+    var ym = year+"-"+pad(mm);
+    var ents = loadMonthEntries(ym);
+    monthlyEntries.push(ents);
+    monthlyTotals.push(ents.reduce(function(s,e){ return s+totalDuJour(e); },0));
+  }
+  var allEntries = [].concat.apply([], monthlyEntries);
+  var a = analyserPeriode(allEntries, daysInYear(year), "cette année");
+  var aPrevYear = analyserPeriode(loadYearEntries(year-1), daysInYear(year-1), "l'année précédente");
+  var score = computeSpiritualScore(a, state.profile.objectifs);
+  addTrendInsights(a.recos, a, aPrevYear, "l'année précédente");
+  var name = state.profile.prenom ? (state.profile.prenom+" "+state.profile.nom) : state.profile.nom;
+
+  var people = a.personnesTriees.length ? (
+    '<div class="section-label">Personnes pour qui vous avez prié</div><div class="people-tags">' +
+    a.personnesTriees.slice(0,20).map(function(pp){ return '<span class="people-tag">'+esc(pp.nom)+' — '+pp.jours+'j · '+formatMin(pp.minutes)+'</span>'; }).join("") +
+    '</div>'
+  ) : "";
+
+  return '' +
+  '<div class="bilan-toolbar no-print">' +
+    '<div class="bilan-toolbar-title"><span>🗓️</span>Bilan annuel</div>' +
+    '<div class="year-nav">' +
+      '<button data-action="shift-year" data-delta="-1">‹</button>' +
+      '<span style="font-weight:700;color:var(--nuit);">'+year+'</span>' +
+      '<button data-action="shift-year" data-delta="1">›</button>' +
+      '<button class="btn-add" id="printBtnAnnee" style="border-color:var(--nuit);color:var(--nuit);">🖨 PDF</button>' +
+    '</div></div>' +
+  '<div class="card" id="bilan-print-area">' +
+    '<div class="bilan-header">' +
+      '<div class="bilan-kicker">Bilan spirituel annuel</div>' +
+      '<h1 class="bilan-name serif">'+esc(name)+'</h1>' +
+      '<div class="bilan-date">Année '+year+' — généré le '+dateLisible(todayISO())+'</div>' +
+    '</div>' +
+    buildBilanSections(a, aPrevYear, state.profile.objectifs, true, score) +
+    donDieuYearSummaryHTML(year) +
+    people +
+    '<div class="section-label">Répartition par mois</div>' +
+    '<div class="chart-wrap">'+barChartSVG(monthlyTotals,"#C9922F",110)+'<div class="month-labels">'+MOIS_ABBR.map(function(l){return '<span>'+l+'</span>';}).join("")+'</div></div>' +
+    '<div class="print-hide"><div class="section-label">Analyse & recommandations</div>' +
+    recosHTML(a.recos) + '</div>' +
+  '</div>';
+}
+function bindAnnuelToolbar(){}
+
+/* =========================================================
+   ONGLET PROFIL
+========================================================= */
+function objDureeInputHTML(idPrefix, minutes, label){
+  var h=Math.floor((minutes||0)/60), m=(minutes||0)%60;
+  return '<div><label class="field-label">'+esc(label)+'</label>' +
+    '<div class="duree-wrap">' +
+      '<input type="number" min="0" id="'+idPrefix+'-h" value="'+h+'">' +
+      '<span class="duree-unit">h</span>' +
+      '<input type="number" min="0" max="59" id="'+idPrefix+'-m" value="'+m+'">' +
+      '<span class="duree-unit">min</span>' +
+    '</div></div>';
+}
+function readObjDuree(idPrefix){
+  var hEl=document.getElementById(idPrefix+"-h"), mEl=document.getElementById(idPrefix+"-m");
+  var h=Math.max(0, parseInt((hEl&&hEl.value)||"0",10));
+  var m=Math.max(0, Math.min(59, parseInt((mEl&&mEl.value)||"0",10)));
+  return h*60+m;
+}
+function computeBestStreak(){
+  var all=loadAllEntries();
+  if(!all.length) return 0;
+  var dates = all.map(function(e){ return e.date; }).sort();
+  var best=1, cur=1;
+  for(var i=1;i<dates.length;i++){
+    if(dates[i]===dates[i-1]) continue;
+    if(dateAdd(dates[i-1],1)===dates[i]){ cur++; best=Math.max(best,cur); } else { cur=1; }
+  }
+  return best;
+}
+function profilHTML(){
+  var pr=state.profile;
+  var obj=pr.objectifs;
+  var curStreak = computeStreak(), bestStreak = computeBestStreak();
+  var totalJoursEnr = loadAllEntries().length;
+  return '' +
+  '<div class="card"><div class="card-title" style="margin-bottom:16px;"><span class="emoji">🙂</span>Identité</div>' +
+    '<div class="field-gap"><label class="field-label">Prénom</label><input id="pf-prenom" value="'+esc(pr.prenom||"")+'"></div>' +
+    '<div class="field-gap"><label class="field-label">Nom</label><input id="pf-nom" value="'+esc(pr.nom||"")+'"></div>' +
+    '<div class="field-gap"><label class="field-label">Faiseur de disciple</label><input id="pf-faiseur" value="'+esc(pr.faiseurDeDisciple||"")+'" placeholder="Nom de votre faiseur de disciple"></div>' +
+    '<div class="field-gap"><label class="field-label">Assemblée chez</label><input id="pf-assemblee" value="'+esc(pr.assemblee||"")+'" placeholder="Ex : Sous l\'arbre, Temple de la Grâce..."></div>' +
+    '<div class="stats-row">' +
+      '<span>🔥 Série actuelle : <b>'+curStreak+' j.</b></span>' +
+      '<span>🏆 Meilleure série : <b>'+bestStreak+' j.</b></span>' +
+      '<span>📋 Journées enregistrées : <b>'+totalJoursEnr+'</b></span>' +
+    '</div>' +
+  '</div>' +
+
+  '<div class="card"><div class="card-title" style="margin-bottom:16px;"><span class="emoji">🎯</span>Objectifs quotidiens</div>' +
+    '<div class="grid-2">' +
+      objDureeInputHTML("pf-obj-priere", obj.priereMin, "PS/SM — Prière pour moi-même") +
+      objDureeInputHTML("pf-obj-priere-autres", obj.priereAutresMin, "PS/FD+AU+FM — Prière pour les autres") +
+      objDureeInputHTML("pf-obj-meditation", obj.meditationMin, "Méditation") +
+      '<div><label class="field-label">Chapitres lus</label><input type="number" min="0" id="pf-obj-chapitres" value="'+obj.chapitres+'"></div>' +
+      objDureeInputHTML("pf-obj-etude", obj.etudeMin, "Étude") +
+      objDureeInputHTML("pf-obj-sommeil", obj.sommeilMin, "Sommeil") +
+      '<div><label class="field-label">Retraites par mois (nombre)</label><input type="number" min="0" id="pf-obj-retraites" value="'+obj.retraitesParMois+'"></div>' +
+      '<div><label class="field-label">Évangélisation (personnes/jour)</label><input type="number" min="0" id="pf-obj-evangelisation" value="'+obj.evangelisationPersonnes+'"></div>' +
+    '</div>' +
+  '</div>' +
+
+  '<button class="btn-primary" id="pf-save" style="margin-bottom:16px;">Enregistrer le profil</button>' +
+
+  '<div class="card"><div class="card-title" style="margin-bottom:16px;"><span class="emoji">🔒</span>Sécurité</div>' +
+    (pr.pinEnabled ?
+      '<p style="font-size:13px;color:var(--encre-doux);margin-bottom:12px;">Un code de verrouillage est actif.</p>' +
+      '<button class="btn-danger" id="pf-pin-remove">Retirer le code</button>'
+      :
+      '<p style="font-size:13px;color:var(--encre-doux);margin-bottom:12px;">Protégez l\'accès à votre carnet avec un code à 4-6 chiffres.</p>' +
+      '<div class="grid-2">' +
+        '<div><label class="field-label">Nouveau code</label><input type="password" inputmode="numeric" maxlength="6" id="pf-pin-new"></div>' +
+        '<div><label class="field-label">Confirmer le code</label><input type="password" inputmode="numeric" maxlength="6" id="pf-pin-confirm"></div>' +
+      '</div>' +
+      '<button class="btn-secondary" id="pf-pin-set" style="margin-top:12px;">Activer le code</button>'
+    ) +
+  '</div>' +
+
+  '<div class="card"><div class="card-title" style="margin-bottom:16px;"><span class="emoji">💾</span>Sauvegarde & restauration</div>' +
+    '<p style="font-size:13px;color:var(--encre-doux);margin-bottom:12px;">Vos données sont stockées uniquement sur cet appareil. Exportez-les régulièrement pour éviter toute perte.</p>' +
+    '<div style="display:flex;gap:10px;flex-wrap:wrap;">' +
+      '<button class="btn-secondary" id="pf-export">⬇️ Exporter mes données</button>' +
+      '<button class="btn-secondary" id="pf-import-trigger">⬆️ Importer mes données</button>' +
+      '<input type="file" id="pf-import-file" accept="application/json" style="display:none;">' +
+    '</div>' +
+  '</div>' +
+  '<p class="hint">Votre nom apparaît sur vos bilans mensuels et annuels exportables en PDF.</p>';
+}
+
+/* =========================================================
+   ÉVÉNEMENTS (délégation posée une seule fois sur #app)
+========================================================= */
+function bindGlobalDelegation(){
+  if(app._bound) return;
+  app._bound = true;
+
+  app.addEventListener("input", function(ev){
+    var t=ev.target;
+    var durWrap = t.closest && t.closest("[data-duration-container]");
+    if(durWrap){
+      var path=durWrap.getAttribute("data-duration-container");
+      var hI=durWrap.querySelector('[data-part="h"]'), mI=durWrap.querySelector('[data-part="m"]');
+      var h=Math.max(0, parseInt(hI.value||"0",10)||0);
+      var m=parseInt(mI.value||"0",10)||0;
+      if(m>59){m=59; mI.value=59;} if(m<0){m=0; mI.value=0;}
+      setDeep(state.entry, path, h*60+m);
+      afterEntryMutated();
+      return;
+    }
+    if(t.dataset && t.dataset.path && state.tab==="saisie"){
+      var val = t.dataset.type==="number" ? (parseInt(t.value||"0",10)||0) : t.value;
+      setDeep(state.entry, t.dataset.path, val);
+      afterEntryMutated();
+      return;
+    }
+    if(t.id==="histSearch"){
+      state.histFilters.q = t.value;
+      document.getElementById("histList").innerHTML = renderHistList(loadAllEntries());
+    }
+  });
+
+  app.addEventListener("change", function(ev){
+    var t=ev.target;
+    if(t.dataset && t.dataset.path && (t.tagName==="SELECT" || t.type==="time" || t.type==="date")){
+      setDeep(state.entry, t.dataset.path, t.value);
+      afterEntryMutated();
+      return;
+    }
+    if(t.id==="dateInput"){
+      if(isFutureDate(t.value)){
+        showToast("Vous ne pouvez pas enregistrer une journée future.", "error");
+        t.value = state.selectedDate;
+        return;
+      }
+      state.selectedDate = t.value;
+      state.entry = getEntry(state.selectedDate) || defaultEntry(state.selectedDate);
+      state._savedFlag = false;
+      render(); return;
+    }
+    if(t.id==="histJeune"){ state.histFilters.jeuneOnly = t.checked; document.getElementById("histList").innerHTML = renderHistList(loadAllEntries()); return; }
+    if(t.id==="histPersonne"){ state.histFilters.personne = t.value; document.getElementById("histList").innerHTML = renderHistList(loadAllEntries()); return; }
+    if(t.id==="pf-import-file"){
+      var file = t.files && t.files[0];
+      if(file) importDataFromFile(file);
+      t.value = "";
+      return;
+    }
+  });
+
+  app.addEventListener("click", function(ev){
+    var b = ev.target.closest && ev.target.closest("[data-action], #pf-save, #pf-pin-remove, #pf-pin-set, #pf-export, #pf-import-trigger, #printBtnMois, #printBtnAnnee, #don-save");
+    if(!b) return;
+
+    if(b.id==="pf-import-trigger"){ document.getElementById("pf-import-file").click(); return; }
+    if(b.id==="pf-export"){ exportData(); return; }
+
+    if(b.id==="pf-pin-remove"){
+      showConfirm("Retirer le code de verrouillage ? N'importe qui pourra alors ouvrir votre carnet.", function(){
+        state.profile.pinEnabled=false; state.profile.pinHash=null;
+        saveProfil(state.profile); showToast("Code retiré.", "success"); render();
+      });
+      return;
+    }
+    if(b.id==="pf-pin-set"){
+      var p1=document.getElementById("pf-pin-new").value, p2=document.getElementById("pf-pin-confirm").value;
+      if(!/^\d{4,6}$/.test(p1)){ showToast("Le code doit contenir 4 à 6 chiffres.", "error"); return; }
+      if(p1!==p2){ showToast("Les deux codes ne correspondent pas.", "error"); return; }
+      sha256Hex(p1).then(function(h){
+        state.profile.pinEnabled=true; state.profile.pinHash=h;
+        saveProfil(state.profile); showToast("Code de verrouillage activé.", "success"); render();
+      });
+      return;
+    }
+    if(b.id==="pf-save"){
+      var nom=document.getElementById("pf-nom").value.trim();
+      var prenom=document.getElementById("pf-prenom").value.trim();
+      if(!nom){ showToast("Le nom est requis.", "error"); return; }
+      state.profile.nom=nom; state.profile.prenom=prenom;
+      state.profile.faiseurDeDisciple = document.getElementById("pf-faiseur").value.trim();
+      state.profile.assemblee = document.getElementById("pf-assemblee").value.trim();
+      state.profile.objectifs = {
+        priereMin: readObjDuree("pf-obj-priere"),
+        priereAutresMin: readObjDuree("pf-obj-priere-autres"),
+        meditationMin: readObjDuree("pf-obj-meditation"),
+        chapitres: Math.max(0, parseInt(document.getElementById("pf-obj-chapitres").value||"0",10)),
+        etudeMin: readObjDuree("pf-obj-etude"),
+        sommeilMin: readObjDuree("pf-obj-sommeil"),
+        retraitesParMois: Math.max(0, parseInt(document.getElementById("pf-obj-retraites").value||"0",10)),
+        evangelisationPersonnes: Math.max(0, parseInt(document.getElementById("pf-obj-evangelisation").value||"0",10))
+      };
+      if(saveProfil(state.profile)){ showToast("Profil mis à jour ✅", "success"); render(); }
+      else { showToast("Échec de l'enregistrement du profil.", "error"); }
+      return;
+    }
+    if(b.id==="printBtnMois" || b.id==="printBtnAnnee"){ triggerPrint(); return; }
+    if(b.id==="don-save"){
+      var donYm = b.getAttribute("data-ym");
+      function readFond(key){
+        return {
+          montant: Math.max(0, parseFloat(document.getElementById("don-"+key+"-montant").value||"0")),
+          pourcentage: Math.max(0, Math.min(100, parseFloat(document.getElementById("don-"+key+"-pct").value||"0")))
+        };
+      }
+      var donObj = {
+        dime: readFond("dime"), offrande: readFond("offrande"),
+        fmi: readFond("fmi"), fmn: readFond("fmn"), fe: readFond("fe"),
+        fg: readFond("fg"), rtvc: readFond("rtvc"), jmci: readFond("jmci"),
+        besoinsPriere: [0,1,2].map(function(i){
+          var el = document.getElementById("don-besoin-"+i);
+          return el ? el.value.trim() : "";
+        })
+      };
+      if(saveDon(donYm, donObj)){ showToast("Rapport du mois enregistré ✅", "success"); render(); }
+      else { showToast("Échec de l'enregistrement.", "error"); }
+      return;
+    }
+
+    var action = b.getAttribute && b.getAttribute("data-action");
+    if(!action) return;
+
+    if(action==="set-tab"){ state.tab=b.getAttribute("data-tab"); render(); return; }
+
+    if(action==="shift-date"){
+      var delta=parseInt(b.getAttribute("data-delta"),10);
+      var newDate = dateAdd(state.selectedDate, delta);
+      if(isFutureDate(newDate)){
+        showToast("Vous ne pouvez pas naviguer vers une journée future.", "error");
+        return;
+      }
+      state.selectedDate = newDate;
+      state.entry = getEntry(state.selectedDate) || defaultEntry(state.selectedDate);
+      state._savedFlag = false;
+      render(); return;
+    }
+    if(action==="shift-year"){
+      state._bilanYear = (state._bilanYear||new Date().getFullYear()) + parseInt(b.getAttribute("data-delta"),10);
+      render(); return;
+    }
+
+    if(action==="toggle-jeune"){
+      state.entry.jeune.actif = !state.entry.jeune.actif;
+      document.getElementById("jeuneBody").innerHTML = jeuneBodyHTML(state.entry);
+      afterEntryMutated();
+      return;
+    }
+    if(action==="toggle-retraite"){
+      state.entry.retraite.actif = !state.entry.retraite.actif;
+      document.getElementById("retraiteBody").innerHTML = retraiteBodyHTML(state.entry);
+      afterEntryMutated();
+      return;
+    }
+
+    if(action==="add-autre"){
+      state.entry.priereAutres.push({id:uid(), nom:"", minutes:0});
+      document.getElementById("autresList").innerHTML = priereAutresListHTML(state.entry);
+      afterEntryMutated(); return;
+    }
+    if(action==="remove-autre"){
+      var idxA=parseInt(b.getAttribute("data-index"),10);
+      showConfirm("Supprimer cette personne de votre liste de prière du jour ?", function(){
+        state.entry.priereAutres.splice(idxA,1);
+        document.getElementById("autresList").innerHTML = priereAutresListHTML(state.entry);
+        afterEntryMutated();
+      });
+      return;
+    }
+
+    if(action==="add-sujet"){
+      if((state.entry.sujetsPriere||[]).length>=3) return;
+      state.entry.sujetsPriere.push({id:uid(), texte:""});
+      document.getElementById("sujetsList").innerHTML = sujetsPriereListHTML(state.entry);
+      var addBtn=document.getElementById("add-sujet-btn");
+      if(addBtn && state.entry.sujetsPriere.length>=3) addBtn.style.display="none";
+      afterEntryMutated(); return;
+    }
+    if(action==="remove-sujet"){
+      var idxS=parseInt(b.getAttribute("data-index"),10);
+      state.entry.sujetsPriere.splice(idxS,1);
+      document.getElementById("sujetsList").innerHTML = sujetsPriereListHTML(state.entry);
+      var addBtn2=document.getElementById("add-sujet-btn");
+      if(addBtn2) addBtn2.style.display="";
+      afterEntryMutated(); return;
+    }
+
+    if(action==="add-sommeil"){
+      state.entry.sommeil.push({id:uid(), coucherDate:dateAdd(state.entry.date,-1), coucher:"", leverDate:state.entry.date, lever:""});
+      document.getElementById("sommeilList").innerHTML = sommeilListHTML(state.entry);
+      afterEntryMutated(); return;
+    }
+    if(action==="remove-sommeil"){
+      var idxS=parseInt(b.getAttribute("data-index"),10);
+      showConfirm("Supprimer cette période de sommeil ?", function(){
+        state.entry.sommeil.splice(idxS,1);
+        document.getElementById("sommeilList").innerHTML = sommeilListHTML(state.entry);
+        afterEntryMutated();
+      });
+      return;
+    }
+
+    if(action==="add-groupe"){
+      state.entry.groupe.sessions.push({id:uid(), debut:"", fin:""});
+      document.getElementById("groupeList").innerHTML = groupeListHTML(state.entry);
+      afterEntryMutated(); return;
+    }
+    if(action==="remove-groupe"){
+      var idxG=parseInt(b.getAttribute("data-index"),10);
+      showConfirm("Supprimer cette session de prière en groupe ?", function(){
+        state.entry.groupe.sessions.splice(idxG,1);
+        document.getElementById("groupeList").innerHTML = groupeListHTML(state.entry);
+        afterEntryMutated();
+      });
+      return;
+    }
+
+    if(action==="save-entry"){
+      if(isFutureDate(state.selectedDate)){
+        showToast("Impossible d'enregistrer une journée future.", "error");
+        return;
+      }
+      var ok = saveEntryLS(state.selectedDate, state.entry);
+      var btn=document.getElementById("saveBtn");
+      if(ok){
+        state._savedFlag = true;
+        btn.classList.add("saved"); btn.textContent="✅ Journée enregistrée";
+        var ind=document.getElementById("autosaveStatus"); if(ind) ind.textContent="Sauvegardé à "+nowHM();
+        setTimeout(function(){ state._savedFlag=false; var bb=document.getElementById("saveBtn"); if(bb){ bb.classList.remove("saved"); bb.textContent="Enregistrer la journée"; } }, 2200);
+      } else {
+        showToast("Échec de la sauvegarde. Vérifiez l'espace de stockage de votre navigateur.", "error");
+      }
+      return;
+    }
+
+    if(action==="open-date"){
+      state.selectedDate = b.getAttribute("data-date");
+      state.entry = getEntry(state.selectedDate) || defaultEntry(state.selectedDate);
+      state.tab = "saisie"; state._savedFlag=false;
+      render(); return;
+    }
+  });
+}
+
+/* ---------- Export / Import ---------- */
+function exportData(){
+  var data = { exportedAt: new Date().toISOString(), profile: state.profile, entries: {} };
+  loadAllEntries().forEach(function(e){ data.entries[e.date]=e; });
+  try{
+    var blob = new Blob([JSON.stringify(data,null,2)], {type:"application/json"});
+    var url = URL.createObjectURL(blob);
+    var a=document.createElement("a"); a.href=url; a.download="carnet-spirituel-sauvegarde-"+todayISO()+".json";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+    showToast("Export généré ✅", "success");
+  }catch(e){ showToast("Échec de l'export.", "error"); }
+}
+function importDataFromFile(file){
+  var reader = new FileReader();
+  reader.onload = function(){
+    var data;
+    try{ data = JSON.parse(reader.result); }
+    catch(e){ showToast("Fichier invalide, importation impossible.", "error"); return; }
+    showConfirm("Importer ces données remplacera vos entrées existantes portant la même date. Continuer ?", function(){
+      try{
+        if(data.profile){ var merged=Object.assign(defaultProfileShape(), data.profile); saveProfil(merged); state.profile=getProfil(); if(state.profile && state.profile.pinEnabled) state.locked=true; }
+        if(data.entries){ Object.keys(data.entries).forEach(function(d){ saveEntryLS(d, data.entries[d]); }); }
+        showToast("Importation réussie ✅", "success");
+        render();
+      }catch(e){ showToast("Erreur pendant l'importation.", "error"); }
+    });
+  };
+  reader.onerror = function(){ showToast("Erreur de lecture du fichier.", "error"); };
+  reader.readAsText(file);
+}
+
+render();
+</script>
+</body>
+</html>
