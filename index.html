@@ -149,6 +149,12 @@
   .section-label{font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--nuit); margin-bottom:10px;}
   .people-tags{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:22px;}
   .people-tag{font-size:12px; padding:6px 12px; border-radius:999px; background:rgba(107,74,110,0.08); color:var(--intercession);}
+  .people-table{width:100%; border-collapse:collapse; margin-bottom:22px; font-size:13px;}
+  .people-table th, .people-table td{padding:7px 10px; border-bottom:1px solid var(--ligne); text-align:left;}
+  .people-table th{font-weight:700; color:var(--nuit); font-size:11px; text-transform:uppercase; letter-spacing:0.05em;}
+  .people-table td:nth-child(2), .people-table th:nth-child(2){text-align:center; white-space:nowrap;}
+  .people-table td:nth-child(3), .people-table th:nth-child(3){text-align:right; white-space:nowrap;}
+  .people-table tbody tr:last-child td{border-bottom:none;}
   .reco{display:flex; gap:10px; align-items:flex-start; background:var(--papier); border-radius:12px; padding:11px 13px; margin-bottom:8px;}
   .reco-badge{font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; padding:3px 9px; border-radius:999px; flex-shrink:0;}
   .reco-text{font-size:13.5px; line-height:1.5; color:var(--encre);}
@@ -238,7 +244,7 @@
     .score-block{break-inside:avoid; border:1px solid var(--ligne);}
     .kpi-grid{break-inside:avoid; margin-bottom:18px;}
     .section-label{border-top:1px solid var(--ligne); padding-top:14px; margin-top:6px; font-size:12px; letter-spacing:0.8px;}
-    .chart-wrap, .heat-grid, .people-tags{break-inside:avoid;}
+    .chart-wrap, .heat-grid, .people-tags, .people-table{break-inside:avoid;}
   }
 </style>
 </head>
@@ -392,8 +398,8 @@ async function sha256Hex(str){
 }
 
 function defaultEntry(date){
-  return { date:date, priereMin:0, priereSeul:{sm:0,fd:0,au:0,fm:0}, meditationMin:0, chapitresLus:0, lectureMin:0,
-    jeune:{actif:false,type:"",duree:0,objectif:""}, livre:{titre:"",minutes:0},
+  return { date:date, priereMin:0, priereSeul:{sm:0,fd:0,au:0,fm:0}, meditationMin:0, meditation:{debut:"",fin:""}, chapitresLus:0, lectureMin:0,
+    jeune:{actif:false,type:"",duree:0,objectif:""}, livre:{titre:"",minutes:0,sessions:[]},
     priereAutres:[], sommeil:[], groupe:{sessions:[],totalMinutes:0}, etudeMin:0,
     retraite:{actif:false,minutes:0,type:"",note:""},
     evangelisation:{personnes:0,minutes:0,type:""},
@@ -405,7 +411,6 @@ function normalizeEntry(e){
   if(e.jeune.duree==null) e.jeune.duree = 0;
   if(e.jeune.objectif==null) e.jeune.objectif = e.jeune.notes || "";
   delete e.jeune.notes;
-  e.livre = e.livre || {titre:"",minutes:0};
   e.retraite = e.retraite || {actif:false,minutes:0,type:"",note:""};
   if(e.retraite.type==null) e.retraite.type = "";
   if(e.retraite.note==null) e.retraite.note = "";
@@ -425,12 +430,16 @@ function normalizeEntry(e){
 
   /* Prière Seule (PS) : sous-rubriques SM (soi-même) / FD (faiseur de disciple) / AU (autres) / FM (famille).
      On ne supprime jamais l'ancien champ priereMin (rétrocompatibilité) : il est migré une fois vers PS/SM
-     puis maintenu en miroir. PS/AU est initialisé une fois à partir de l'ancienne liste nominative priereAutres[]. */
+     puis maintenu en miroir. PS/AU est désormais piloté par la liste nominative priereAutres[] (nom + temps
+     par personne, plusieurs personnes possibles le même jour) : dès qu'au moins une personne y figure, PS/AU
+     est recalculé comme la somme de ces temps. Tant qu'aucune personne n'est renseignée, l'ancienne valeur
+     manuelle de PS/AU (saisies antérieures à cette mise à jour) est conservée telle quelle. */
   e.priereSeul = e.priereSeul || {sm:0, fd:0, au:0, fm:0};
   if(e.priereSeul.sm==null) e.priereSeul.sm = 0;
   if(e.priereSeul.fd==null) e.priereSeul.fd = 0;
   if(e.priereSeul.fm==null) e.priereSeul.fm = 0;
-  if(e.priereSeul.au==null){
+  if(e.priereSeul.au==null) e.priereSeul.au = 0;
+  if(e.priereAutres.length>0){
     e.priereSeul.au = e.priereAutres.reduce(function(s,a){ return s+(a.minutes||0); },0);
   }
   if(!e.priereSeul.sm && e.priereMin){ e.priereSeul.sm = e.priereMin; }
@@ -443,6 +452,25 @@ function normalizeEntry(e){
   groupe.sessions = (groupe.sessions||[]).map(function(g){ return {id:g.id||uid(), debut:g.debut||"", fin:g.fin||""}; });
   groupe.totalMinutes = groupe.sessions.reduce(function(s,g){ return s+dureeEntre(g.debut,g.fin); },0);
   e.groupe = groupe;
+
+  /* Méditation : heure de début/fin (comme la prière en groupe), calcul automatique du temps.
+     Tant qu'aucune heure n'est renseignée, l'ancienne valeur manuelle de meditationMin est conservée. */
+  e.meditation = e.meditation || {debut:"",fin:""};
+  if(e.meditation.debut==null) e.meditation.debut = "";
+  if(e.meditation.fin==null) e.meditation.fin = "";
+  if(e.meditation.debut && e.meditation.fin){
+    e.meditationMin = dureeEntre(e.meditation.debut, e.meditation.fin);
+  }
+
+  /* Lecture chrétienne (livre) : plusieurs sessions de lecture possibles par jour (début/fin chacune),
+     somme automatique. Tant qu'aucune session n'est renseignée, l'ancienne valeur manuelle de
+     livre.minutes est conservée. */
+  e.livre = e.livre || {titre:"",minutes:0,sessions:[]};
+  if(e.livre.minutes==null) e.livre.minutes = 0;
+  e.livre.sessions = (e.livre.sessions||[]).map(function(s){ return {id:s.id||uid(), debut:s.debut||"", fin:s.fin||""}; });
+  if(e.livre.sessions.length>0){
+    e.livre.minutes = e.livre.sessions.reduce(function(s,x){ return s+dureeEntre(x.debut,x.fin); },0);
+  }
 
   e.sommeil = (e.sommeil||[]).map(function(s){
     if(s.coucherDate && s.leverDate) return s;
@@ -953,17 +981,25 @@ function saisieHTML(){
     '<div class="grid-2">' +
       '<div>'+dureeInputHTML("priereSeul.sm", e.priereSeul.sm, "PS/SM — pour Soi-même")+'</div>' +
       '<div>'+dureeInputHTML("priereSeul.fd", e.priereSeul.fd, "PS/FD — pour le Faiseur de Disciple")+'</div>' +
-      '<div>'+dureeInputHTML("priereSeul.au", e.priereSeul.au, "PS/AU — pour les Autres")+'</div>' +
       '<div>'+dureeInputHTML("priereSeul.fm", e.priereSeul.fm, "PS/FM — pour la Famille")+'</div>' +
-    '</div></div>' +
+    '</div>' +
+    '<div class="sep">' +
+      '<div class="sub-label"><span>🙏</span>PS/AU — pour les Autres<span class="badge" id="autresTotalBadge" style="margin-left:8px;">'+formatMin(priereAutresDuJour(e))+'</span></div>' +
+      '<div id="autresList">'+priereAutresListHTML(e)+'</div>' +
+      '<button class="btn-add" data-action="add-autre" style="margin-top:10px;">+ Ajouter une personne</button>' +
+    '</div>' +
+  '</div>' +
 
   '<div class="card"><div class="card-head"><div class="card-title"><span class="emoji">📋</span>Prière en groupe</div><span class="badge" id="groupeTotalBadge">'+formatMin(totalGroupe(e))+'</span></div>' +
     '<div id="groupeList">'+groupeListHTML(e)+'</div>' +
     '<button class="btn-add" data-action="add-groupe" style="margin-top:10px;">+ Ajouter une session</button>' +
   '</div>' +
 
-  '<div class="card"><div class="card-head"><div class="card-title"><span class="emoji">🧘</span>Méditation (RDQD)</div></div>' +
-    dureeInputHTML("meditationMin", e.meditationMin, "Temps de méditation") +
+  '<div class="card"><div class="card-head"><div class="card-title"><span class="emoji">🧘</span>Méditation (RDQD)</div><span class="badge" id="meditationTotalBadge">'+formatMin(meditationDuree(e))+'</span></div>' +
+    '<div class="row">' +
+      '<div><label class="field-label">Début</label><input type="time" data-path="meditation.debut" value="'+esc(e.meditation.debut)+'"></div>' +
+      '<div><label class="field-label">Fin</label><input type="time" data-path="meditation.fin" value="'+esc(e.meditation.fin)+'"></div>' +
+    '</div>' +
   '</div>' +
 
   '<div class="card"><div class="card-head"><div class="card-title"><span class="emoji">📖</span>Parole de Dieu</div></div>' +
@@ -972,11 +1008,10 @@ function saisieHTML(){
       '<div>'+dureeInputHTML("lectureMin", e.lectureMin, "Temps de lecture biblique")+'</div>' +
     '</div>' +
     '<div class="sep">' +
-      '<div class="sub-label"><span>📚</span>Lecture chrétienne</div>' +
-      '<div class="grid-2">' +
-        '<div><label class="field-label">Titre du livre (optionnel)</label><input data-path="livre.titre" value="'+esc(e.livre.titre)+'" placeholder="Ex : Le combat chrétien"></div>' +
-        '<div>'+dureeInputHTML("livre.minutes", e.livre.minutes, "Temps de lecture")+'</div>' +
-      '</div>' +
+      '<div class="sub-label"><span>📚</span>Lecture chrétienne<span class="badge" id="livreTotalBadge">'+formatMin(totalLivre(e))+'</span></div>' +
+      '<div style="margin-bottom:10px;"><label class="field-label">Titre du livre (optionnel)</label><input data-path="livre.titre" value="'+esc(e.livre.titre)+'" placeholder="Ex : Le combat chrétien"></div>' +
+      '<div id="livreSessionsList">'+livreSessionsListHTML(e)+'</div>' +
+      '<button class="btn-add" data-action="add-livre-session" style="margin-top:10px;">+ Ajouter une session de lecture</button>' +
     '</div></div>' +
 
   '<div class="card"><div class="card-head"><div class="card-title"><span class="emoji">🎓</span>Étude</div></div>' +
@@ -1105,6 +1140,28 @@ function groupeListHTML(e){
     '</div>';
   }).join("") || '<p style="font-size:12px;color:var(--encre-doux);">Aucune session ajoutée.</p>';
 }
+function livreSessionsListHTML(e){
+  return (e.livre&&e.livre.sessions||[]).map(function(g,i){
+    return '<div class="row">' +
+      '<div><label class="field-label">Début</label><input type="time" data-path="livre.sessions.'+i+'.debut" value="'+esc(g.debut)+'"></div>' +
+      '<div><label class="field-label">Fin</label><input type="time" data-path="livre.sessions.'+i+'.fin" value="'+esc(g.fin)+'"></div>' +
+      '<span class="badge" id="livre-session-badge-'+i+'">'+formatMin(dureeEntre(g.debut,g.fin))+'</span>' +
+      '<button class="icon-btn" data-action="remove-livre-session" data-index="'+i+'" title="Supprimer">🗑</button>' +
+    '</div>';
+  }).join("") || '<p style="font-size:12px;color:var(--encre-doux);">Aucune session de lecture ajoutée.</p>';
+}
+/* totalLivre : somme des sessions si présentes, sinon ancienne valeur manuelle conservée (rétrocompatibilité) */
+function totalLivre(e){
+  if(!e.livre) return 0;
+  return (e.livre.sessions&&e.livre.sessions.length>0)
+    ? e.livre.sessions.reduce(function(s,g){ return s+dureeEntre(g.debut,g.fin); },0)
+    : (e.livre.minutes||0);
+}
+/* meditationDuree : calculée à partir de début/fin si renseignés, sinon ancienne valeur manuelle conservée */
+function meditationDuree(e){
+  if(e.meditation && e.meditation.debut && e.meditation.fin) return dureeEntre(e.meditation.debut, e.meditation.fin);
+  return e.meditationMin||0;
+}
 
 function updateComputedDisplays(){
   var e=state.entry;
@@ -1113,8 +1170,12 @@ function updateComputedDisplays(){
   var pw=document.getElementById("progressWrap"); if(pw) pw.outerHTML=progressWrapHTML(e);
   var st=document.getElementById("sommeilTotalBadge"); if(st) st.textContent=formatMin(totalSommeil(e));
   var gt=document.getElementById("groupeTotalBadge"); if(gt) gt.textContent=formatMin(totalGroupe(e));
+  var at=document.getElementById("autresTotalBadge"); if(at) at.textContent=formatMin(priereAutresDuJour(e));
+  var mt=document.getElementById("meditationTotalBadge"); if(mt) mt.textContent=formatMin(meditationDuree(e));
+  var lt=document.getElementById("livreTotalBadge"); if(lt) lt.textContent=formatMin(totalLivre(e));
   (e.sommeil||[]).forEach(function(s,i){ var b=document.getElementById("sommeil-badge-"+i); if(b) b.textContent=formatMin(sommeilDuree(s)); });
   (e.groupe&&e.groupe.sessions||[]).forEach(function(g,i){ var b=document.getElementById("groupe-badge-"+i); if(b) b.textContent=formatMin(dureeEntre(g.debut,g.fin)); });
+  (e.livre&&e.livre.sessions||[]).forEach(function(g,i){ var b=document.getElementById("livre-session-badge-"+i); if(b) b.textContent=formatMin(dureeEntre(g.debut,g.fin)); });
 }
 function markDirtyAndAutosave(){
   if(isFutureDate(state.entry.date)) return;
@@ -1128,7 +1189,18 @@ function markDirtyAndAutosave(){
 }
 function afterEntryMutated(){
   if(state.entry.groupe) state.entry.groupe.totalMinutes = totalGroupe(state.entry);
-  if(state.entry.priereSeul) state.entry.priereMin = state.entry.priereSeul.sm;
+  if(state.entry.priereSeul){
+    if(state.entry.priereAutres && state.entry.priereAutres.length>0){
+      state.entry.priereSeul.au = priereAutresDuJour(state.entry);
+    }
+    state.entry.priereMin = state.entry.priereSeul.sm;
+  }
+  if(state.entry.meditation && state.entry.meditation.debut && state.entry.meditation.fin){
+    state.entry.meditationMin = dureeEntre(state.entry.meditation.debut, state.entry.meditation.fin);
+  }
+  if(state.entry.livre && state.entry.livre.sessions && state.entry.livre.sessions.length>0){
+    state.entry.livre.minutes = totalLivre(state.entry);
+  }
   if(state.tab==="saisie") updateComputedDisplays();
   markDirtyAndAutosave();
 }
@@ -1338,6 +1410,19 @@ function kpiHTML(label, value, subPlain, deltaRawHtml){
   return '<div class="kpi"><div class="label">'+esc(label)+'</div><div class="value">'+esc(value)+'</div>' +
     (subPlain?'<div class="sub">'+esc(subPlain)+(deltaRawHtml||"")+'</div>':(deltaRawHtml?'<div class="sub">'+deltaRawHtml+'</div>':'')) +
   '</div>';
+}
+/* Tableau « Personnes pour qui vous avez prié » (PS/AU) : nom, nombre de jours, temps cumulé sur la période.
+   Si la même personne a été priée plusieurs fois, les temps sont déjà sommés dans personnesTriees. */
+function personnesTableHTML(list, limit){
+  if(!list || list.length===0) return "";
+  var rows = limit ? list.slice(0,limit) : list;
+  var note = (limit && list.length>limit) ? '<p style="font-size:11px;color:var(--encre-doux);margin-top:-14px;margin-bottom:22px;">Les '+limit+' premières personnes sur '+list.length+' sont affichées ci-dessus, par temps cumulé décroissant.</p>' : "";
+  return '<div class="section-label">Personnes pour qui vous avez prié (PS/AU)</div>' +
+    '<table class="people-table"><thead><tr><th>Personne</th><th>Jours</th><th>Temps cumulé</th></tr></thead><tbody>' +
+    rows.map(function(pp){
+      return '<tr><td>'+esc(pp.nom)+'</td><td>'+pp.jours+'</td><td>'+formatMin(pp.minutes)+'</td></tr>';
+    }).join("") +
+    '</tbody></table>' + note;
 }
 function kpiGroup(title, kpisArr){
   return '<div class="section-label">'+esc(title)+'</div><div class="kpi-grid">'+kpisArr.join("")+'</div>';
@@ -1809,11 +1894,7 @@ function bilanHTML(){
   var dailyMap={}; entries.forEach(function(e){ dailyMap[e.date]=totalDuJour(e); });
   var dailyValues=[]; for(var d=1; d<=a.totalJoursPeriode; d++){ dailyValues.push(dailyMap[ym+"-"+pad(d)]||0); }
 
-  var people = a.personnesTriees.length ? (
-    '<div class="section-label">Personnes pour qui vous avez prié</div><div class="people-tags">' +
-    a.personnesTriees.map(function(pp){ return '<span class="people-tag">'+esc(pp.nom)+' — '+pp.jours+'j · '+formatMin(pp.minutes)+'</span>'; }).join("") +
-    '</div>'
-  ) : "";
+  var people = personnesTableHTML(a.personnesTriees);
 
   return '' +
   '<div class="bilan-toolbar no-print">' +
@@ -1888,11 +1969,7 @@ function annuelHTML(){
   addTrendInsights(a.recos, a, aPrevYear, "l'année précédente");
   var name = state.profile.prenom ? (state.profile.prenom+" "+state.profile.nom) : state.profile.nom;
 
-  var people = a.personnesTriees.length ? (
-    '<div class="section-label">Personnes pour qui vous avez prié</div><div class="people-tags">' +
-    a.personnesTriees.slice(0,20).map(function(pp){ return '<span class="people-tag">'+esc(pp.nom)+' — '+pp.jours+'j · '+formatMin(pp.minutes)+'</span>'; }).join("") +
-    '</div>'
-  ) : "";
+  var people = personnesTableHTML(a.personnesTriees, 20);
 
   return '' +
   '<div class="bilan-toolbar no-print">' +
@@ -2228,6 +2305,21 @@ function bindGlobalDelegation(){
       showConfirm("Supprimer cette session de prière en groupe ?", function(){
         state.entry.groupe.sessions.splice(idxG,1);
         document.getElementById("groupeList").innerHTML = groupeListHTML(state.entry);
+        afterEntryMutated();
+      });
+      return;
+    }
+
+    if(action==="add-livre-session"){
+      state.entry.livre.sessions.push({id:uid(), debut:"", fin:""});
+      document.getElementById("livreSessionsList").innerHTML = livreSessionsListHTML(state.entry);
+      afterEntryMutated(); return;
+    }
+    if(action==="remove-livre-session"){
+      var idxL=parseInt(b.getAttribute("data-index"),10);
+      showConfirm("Supprimer cette session de lecture ?", function(){
+        state.entry.livre.sessions.splice(idxL,1);
+        document.getElementById("livreSessionsList").innerHTML = livreSessionsListHTML(state.entry);
         afterEntryMutated();
       });
       return;
