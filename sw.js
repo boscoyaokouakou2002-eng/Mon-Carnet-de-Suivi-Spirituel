@@ -12,7 +12,7 @@
      supprimés automatiquement à l'activation.
 ========================================================= */
 
-var CACHE_VERSION = "cs-cache-v1";
+var CACHE_VERSION = "cs-cache-v2";
 
 /* Fichiers de l'app shell : à adapter si vous ajoutez des fichiers
    (ex: styles.css, app.js) séparés du index.html. */
